@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class Swimming_pool:
     def __init__(self, name, working_hours):
         """
@@ -10,6 +11,7 @@ class Swimming_pool:
         """
         self._name = name
         self._working_hours = working_hours
+
 
 class Client:
     def __init__(self, name, maturity, track, water_entry,
@@ -48,11 +50,13 @@ class Client:
     def maturity(self) -> str:
         return f"{self._name} is {self._maturity}"
 
+
 class Tickets:
     pass
 
+
 class Aviability_and_prices(Swimming_pool):
-    def __init__(self, starting_hour, ending_hour,working_hours,track=(-1)):
+    def __init__(self, starting_hour, ending_hour, working_hours, track=(-1)):
         """
         defining Aviability_and_prices class
         self :: str
@@ -84,8 +88,10 @@ class Aviability_and_prices(Swimming_pool):
             if self._starting_hour <= self._Table.iloc[i, 2]:
                 if self._eding_hour >= self._Table.iloc[i, 1]:
                     return self._Table.iloc[i, 2]
+
     def book_hour(self):
         TimeTable.book(self)
+
 
 class TimeTable(Aviability_and_prices):
     def __init__(self, strating_hour, eding_hour, track, name, working_hours):
@@ -103,7 +109,8 @@ class TimeTable(Aviability_and_prices):
     def table(self) -> pd.DataFrame:
         """stores datatable about reservations"""
         Data = {
-            'Name': ['Alice Police', 'Bob Marley', 'Charlie Hudson', ' Arthur Davidson', 'Płetewka'],
+            'Name': ['Alice Police', 'Bob Marley', 'Charlie Hudson',
+                     ' Arthur Davidson', 'Płetewka'],
             'time_of_entry': [1200, 1800, 1730, 1300, 1600],
             'time_of_leave': [1400, 2000, 2030, 1445, 2000],
             'track': [2, 3, 1, 6, 5]
@@ -118,15 +125,12 @@ class TimeTable(Aviability_and_prices):
         return sorted_filtered_TimeTable
 
     def book(self):
-       """Booking track for client"""
-       TimeTable = TimeTable.table(self)
-       TimeTable.loc[len(TimeTable)] = [Client.name(), self._starting_hour, self._ending_hour, self._track]
+        """Booking track for client"""
+        TimeTable = TimeTable.table(self)
+        TimeTable.loc[len(TimeTable)] = [Client.name(), self._starting_hour,
+                                         self._ending_hour, self._track]
+
 
 class Finance_raport:
     pass
-
-
-class user_friendly_interface:
-    pass
-
 
