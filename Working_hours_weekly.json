@@ -1,0 +1,11 @@
+{
+    "Week":{
+        "Monday": [900, 2000],
+        "Tuesday": [900, 2000],
+        "Wednesday": [900, 2000],
+        "Thruday": [900, 2000],
+        "Friday": [900, 2000],
+        "Saturday": [1200, 1800],
+        "Sunday": [null, null]
+    }
+}

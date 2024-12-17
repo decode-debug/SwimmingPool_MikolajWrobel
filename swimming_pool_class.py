@@ -1,8 +1,9 @@
 from typing import List
+import json
 
 
 class Swimming_pool:
-    def __init__(self, name, working_hours):
+    def __init__(self, name, day):
         """
         defining Swimming_pool class
         self :: str
@@ -10,7 +11,22 @@ class Swimming_pool:
         working_hours :: typle
         """
         self._name = name
-        self._working_hours = working_hours
+        self._day = day
+        self._working_hours = Swimming_pool.get_working_hours()
+
+    def get_working_hours(self):
+        file = "Working_hours_weekly.json"
+        with open(file, "r") as json_file:
+            Data = json.load(json_file)
+        return Data['Week'][f'{self._day}']
+
+    def set_working_hours(self, new_working_hours):
+        file = "Working_hours_weekly.json"
+        with open(file, 'r') as json_file:
+            Day = json.load(json_file)
+            Day['Week'][f'{self._day}'] = list(new_working_hours)
+        with open(file, 'w') as json_file:
+            json_file.write(json.dumps(Day))
 
 
 class Client:
@@ -72,7 +88,7 @@ class Aviability_and_prices(Swimming_pool):
         self._Table = None
         self._num_rows = None
 
-    def trackaviable(self) -> bool or int:
+    def track_aviable(self) -> bool or int:
         """checks if track is free at asked hour"""
         Table = TimeTable.table(self)
         self._Table = Table
@@ -95,37 +111,28 @@ class Aviability_and_prices(Swimming_pool):
 
 
 class TimeTable(Aviability_and_prices):
-    def __init__(self, strating_hour, eding_hour, track, name, working_hours):
-        """
-        self :: str
-        strating_hour :: int
-        eding_hour :: int
-        track :: int
-        name :: str
-        working_hours :: tuple
-        """
-        super(Aviability_and_prices).__init__(strating_hour, eding_hour, track)
-        super(Swimming_pool).__init__(name, working_hours)
-
-    def table_storage(self) -> List[List[str,int,int,int]]:
+    def __init__(self):
         """stores datatable about reservations"""
-        Data = [
-            ['Alice Police', 1200, 1400, 2],
-            ['Bob Marley', 1800, 2000, 3],
-            ['Charlie Hudson', 1730, 2030, 1],
-            [' Arthur Davidson', 1300, 1445, 6],
-            ['Płetewka', 1600, 2000, 5]
-        ]
-        return Data
+        self._Data = []
+
+    def import_Data_from_Reservations(self):
+        file = "Reservations.json"
+        with open(file, "r") as json_file:
+            Data = json.load(json_file)
+        self._Data = Data["Data"]
+        return
 
     def table(self) -> List[str], List[int], List[int], List[int]:
-        """Sorts and decrips Data"""
-        list_name, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(TimeTable.table_storage()))))
+        """Sorts and decrypts Data"""
+        if len(self._Data) == 0:
+            TimeTable.import_Data_from_Reservations()
+        else:
+            list_name, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(self._Data))))
         return list_name, list_starting_hour, list_ending_hour, list_track
 
-    def book(self):
+    def book(self, other, name, strating_hour, eding_hour, track):
         """Booking track for client"""
-        Table = TimeTable.table_storage()
+        self._Data.append([name, strating_hour, eding_hour, track]) #  ????????????????????????????????
 
 
 class Finance_raport:
