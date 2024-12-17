@@ -1,4 +1,4 @@
-import pandas as pd
+from typing import List
 
 
 class Swimming_pool:
@@ -79,7 +79,8 @@ class Aviability_and_prices(Swimming_pool):
         self._num_rows = Table.shape[0]
         for i in range(0, self._num_rows):
             for j in range(1, 3):
-                if self._starting_hour > Table.iloc[i, j] and self._starting_hour < Table.iloc[i, 2]:
+                start = self._starting_hour
+                if start > Table.iloc[i, j] and start < Table.iloc[i, 2]:
                     return self.suggest_hour(i, j)
         return True
 
@@ -106,31 +107,26 @@ class TimeTable(Aviability_and_prices):
         super(Aviability_and_prices).__init__(strating_hour, eding_hour, track)
         super(Swimming_pool).__init__(name, working_hours)
 
-    def table(self) -> pd.DataFrame:
+    def table_storage(self) -> List[List[str,int,int,int]]:
         """stores datatable about reservations"""
-        Data = {
-            'Name': ['Alice Police', 'Bob Marley', 'Charlie Hudson',
-                     ' Arthur Davidson', 'Płetewka'],
-            'time_of_entry': [1200, 1800, 1730, 1300, 1600],
-            'time_of_leave': [1400, 2000, 2030, 1445, 2000],
-            'track': [2, 3, 1, 6, 5]
-        }
-        TimeTable = pd.DataFrame(Data)
-        if self._track == (-1):
-            filtered_TimeTable = TimeTable[TimeTable['track'] == self._track]
-        if filtered_TimeTable:
-            sorted_filtered_TimeTable = filtered_TimeTable.sort_values(by='time_of_entry', ascending=True)
-        else:
-            sorted_filtered_TimeTable = TimeTable.sort_values(by='time_of_entry', ascending=True)
-        return sorted_filtered_TimeTable
+        Data = [
+            ['Alice Police', 1200, 1400, 2],
+            ['Bob Marley', 1800, 2000, 3],
+            ['Charlie Hudson', 1730, 2030, 1],
+            [' Arthur Davidson', 1300, 1445, 6],
+            ['Płetewka', 1600, 2000, 5]
+        ]
+        return Data
+
+    def table(self) -> List[str], List[int], List[int], List[int]:
+        """Sorts and decrips Data"""
+        list_name, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(TimeTable.table_storage()))))
+        return list_name, list_starting_hour, list_ending_hour, list_track
 
     def book(self):
         """Booking track for client"""
-        TimeTable = TimeTable.table(self)
-        TimeTable.loc[len(TimeTable)] = [Client.name(), self._starting_hour,
-                                         self._ending_hour, self._track]
+        Table = TimeTable.table_storage()
 
 
 class Finance_raport:
     pass
-
