@@ -90,7 +90,7 @@ class Aviability_and_prices(Swimming_pool):
 
     def track_aviable(self) -> bool or int:
         """checks if track is free at asked hour"""
-        Table = TimeTable.table(self)
+        Table = TimeTable.table()
         self._Table = Table
         self._num_rows = Table.shape[0]
         for i in range(0, self._num_rows):
@@ -122,7 +122,7 @@ class TimeTable(Aviability_and_prices):
         self._Data = Data["Data"]
         return
 
-    def table(self) -> List[str], List[int], List[int], List[int]:
+    def table(self):
         """Sorts and decrypts Data"""
         if len(self._Data) == 0:
             TimeTable.import_Data_from_Reservations()
