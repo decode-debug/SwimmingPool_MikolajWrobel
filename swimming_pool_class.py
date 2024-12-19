@@ -15,12 +15,14 @@ class Swimming_pool:
         self._working_hours = Swimming_pool.get_working_hours()
 
     def get_working_hours(self):
+        '''asking for workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
         with open(file, "r") as json_file:
             Data = json.load(json_file)
         return Data['Week'][f'{self._day}']
 
     def set_working_hours(self, new_working_hours):
+        '''setting workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
         with open(file, 'r') as json_file:
             Day = json.load(json_file)
@@ -31,7 +33,7 @@ class Swimming_pool:
 
 class Client:
     def __init__(self, name, maturity, track, water_entry,
-                 booked_hours, group_size=1):
+                 booked_hours, class_or_cust, group_size=1):
         """
         defining Client class
         self :: str
@@ -41,6 +43,7 @@ class Client:
         water_entry :: int
         booked_hours :: int
         group_size :: int
+        class_or_cust :: bool
         """
         self._name = name
         self._maturity = maturity
@@ -48,6 +51,7 @@ class Client:
         self._water_entry = water_entry
         self._booked_hours = booked_hours
         self._group_size = group_size
+        self._class_or_cust = class_or_cust
 
     def name(self) -> str:
         """returning client's name"""
@@ -57,6 +61,10 @@ class Client:
         """Printing track occupied by client"""
         if self._group_size == 1:
             return f"{self._name} occupies track {self._track[0]}"
+        if self._class_or_cust == 0:
+            a = f"{self._name} occupies track {self._track[0]} "
+            b = f"with {self._group_size-1} other customers"
+            return a+b
         else:
             a = ""
             for i in self._track:

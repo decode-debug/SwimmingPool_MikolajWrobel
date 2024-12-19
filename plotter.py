@@ -1,7 +1,13 @@
 from swimming_pool_class import Swimming_pool
 import json
-# Type password without left CTRL press key
-import maskpass # importing maskpass library
+import maskpass
+from datetime import datetime
+
+
+def week_days(day):
+    days = ["Poniedziałek", "Wtorek", "środa",
+            "Czwartek", "Piątek", "Sobota", "Niedziela"]
+    return days(day)
 
 
 def get_from_file(file, need):
@@ -14,21 +20,26 @@ def input_value(values, mode):
     value = None
     if mode == 0:
         request = 'Podaj nazwę basenu:'
-        not_a_str = 'Nazwa basenu jest typu string'
+        not_a_type = 'Nazwa basenu jest typu string'
         not_found = f'Basen pod nazwą {value} nie istnieje, wpisz jeden z {values}'
+        types = str
     elif mode == 1:
         request = 'Podaj dzień tygodnia w, którym klient chce pływać:'
-        not_a_str = 'Dzień jest typu string'
+        not_a_type = 'Dzień jest typu string'
         not_found = f'Dzień {value} nie istnieje, wpisz jeden z {values}'
+        types = str
     elif mode == 2:
         request = 'Podaj datę i godzinę wejścia do basenu, proszoną przez klienta w formacie RRRR-MM-DD 00-00-00'
+        not_a_type = 'Podaj datę w formacie iso RRRR-MM-DD 00-00-00 np. 2077-07-07 07:07:07'
+        not_found = ''
+        types = datetime
     while value is None:
         print(request)
         value = input()
-        if type(value) is not str:
+        if type(value) is not types:
             value = None
-            ValueError(not_a_str)
-        if value not in values:
+            ValueError(not_a_type)
+        if value not in values and mode != 2:
             value = None
             ValueError(not_found)
     return value
@@ -42,10 +53,12 @@ def run_in_terminal():
     pool_list = get_from_file("Pools.json", 'Pools')
     day_list = get_from_file("Working_hours_weekly.json", 'Week').keys()
     pool_name = input_value(pool_list, 0)
-    password = maskpass.advpass()
-    print(Podaj dzień)
-    week_day = input_value(day_list, 1)
-    # pool = Swimming_pool(pool_name, day)
+    # password = maskpass.advpass()
+    # if password != get_from_file("passwords.json", pool_name):
+    #     exit()
+    date = datetime.fromisoformat(input_value(None, 2))
+    week_day = week_days(date.weekday())
+    pool = Swimming_pool(pool_name, week_day)
 
 
 def main():
