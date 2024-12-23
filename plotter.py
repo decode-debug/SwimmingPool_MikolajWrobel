@@ -1,7 +1,11 @@
-from swimming_pool_class import Swimming_pool
+from swimming_pool_class import Swimming_pool, Client, Get_client
 import json
 import maskpass
 from datetime import datetime
+
+
+def end_program():
+    print("Do you want to continue")
 
 
 def week_days(day):
@@ -15,9 +19,7 @@ def get_from_file(file, need):
         data = json.load(json_file)
     return data[need]
 
-
-def input_value(values, mode):
-    value = None
+def input_mode(mode):
     if mode == 0:
         request = 'Podaj nazwę basenu:'
         not_a_type = 'Nazwa basenu jest typu string'
@@ -33,6 +35,12 @@ def input_value(values, mode):
         not_a_type = 'Podaj datę w formacie iso RRRR-MM-DD 00-00-00 np. 2077-07-07 07:07:07'
         not_found = ''
         types = datetime
+    return request, not_a_type, not_found, types
+
+
+def input_value(values, mode):
+    value = None
+    request, not_a_type, not_found, types = input_mode(mode)
     while value is None:
         print(request)
         value = input()
@@ -44,7 +52,6 @@ def input_value(values, mode):
             ValueError(not_found)
     return value
 
-
 def bootapp():
     pass
 
@@ -53,12 +60,24 @@ def run_in_terminal():
     pool_list = get_from_file("Pools.json", 'Pools')
     day_list = get_from_file("Working_hours_weekly.json", 'Week').keys()
     pool_name = input_value(pool_list, 0)
-    # password = maskpass.advpass()
-    # if password != get_from_file("passwords.json", pool_name):
-    #     exit()
-    date = datetime.fromisoformat(input_value(None, 2))
-    week_day = week_days(date.weekday())
-    pool = Swimming_pool(pool_name, week_day)
+    password = maskpass.advpass()
+    if password != get_from_file("passwords.json", pool_name):
+        exit()
+    kill_terminal = 0
+    while kill_terminal == 0:
+        string = "(Jeśli klient jescze nie ma numeru wpisz 0)"
+        print(f"Podaj numer karty klienta {string}")
+        card_num = input()
+        if card_num == 0:
+            Get_client.create_client()
+            card_num = Swimming_pool.genrate_client_number()
+            print(f"Client card number is {card_num}")
+        reservation_hour = datetime.fromisoformat(input_value(None, 2))
+        reservation_time = input("Jak długo klient zamierza pływać")
+        week_day = week_days(reservation_hour.weekday())
+        pool = Swimming_pool(pool_name, week_day)
+
+        kill_terminal = end_program()
 
 
 def main():

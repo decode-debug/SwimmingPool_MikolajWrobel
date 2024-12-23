@@ -32,30 +32,56 @@ class Swimming_pool:
 
 
 class Client:
-    def __init__(self, name, maturity, track, water_entry,
-                 booked_hours, class_or_cust, group_size=1):
+    def __init__(self, name, maturity, class_or_cust, group_size=1):
         """
         defining Client class
         self :: str
         name :: str
         maturity :: str
-        track :: int
-        water_entry :: int
-        booked_hours :: int
         group_size :: int
         class_or_cust :: bool
         """
         self._name = name
         self._maturity = maturity
-        self._track = track
-        self._water_entry = water_entry
-        self._booked_hours = booked_hours
         self._group_size = group_size
         self._class_or_cust = class_or_cust
 
     def name(self) -> str:
         """returning client's name"""
         return self._name
+
+    def maturity(self) -> str:
+        return f"{self._name} is {self._maturity}"
+
+
+class Get_client(Client):
+    def __init__(self, name, maturity, track, water_entry,
+                 booked_hours, class_or_cust, group_size=1):
+        super().__init__(name, maturity, track, water_entry,
+                         booked_hours, class_or_cust, group_size)
+
+    def create_client(self):
+        name = input("Podaj imię i nazwisko klienta")
+        if (len(name .split(" ")) == 2):
+            self._name = name.split(" ")
+        if self._group_size == 1:
+            maturity = input("Czy klient jest dorosły")
+        else:
+            meturity = input("Podaj liczbę dorosłych klientów")
+        i
+
+class Reservation:
+    def __init__(self, client_id, track, water_entry, booked_hours,):
+        """
+        client_id :: int
+        track :: int
+        water_entry :: int
+        booked_hours :: int
+        """
+        self._client_id = client_id
+        self._track = track
+        self._water_entry = water_entry
+        self._booked_hours = booked_hours
 
     def tracks(self) -> str:
         """Printing track occupied by client"""
@@ -70,11 +96,6 @@ class Client:
             for i in self._track:
                 a = a + f" {i}"
             return f"group of {self._group_size} named {self._name} occupies tracks{a}"
-
-    def maturity(self) -> str:
-        return f"{self._name} is {self._maturity}"
-
-
 class Tickets:
     pass
 
