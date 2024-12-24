@@ -1,9 +1,12 @@
 from typing import List
 import json
+from random import random
+from pandas import DataFrame
+from numpy import array
 
 
 class Swimming_pool:
-    def __init__(self, name, day):
+    def __init__(self, name, day, tracks=1):
         """
         defining Swimming_pool class
         self :: str
@@ -13,6 +16,7 @@ class Swimming_pool:
         self._name = name
         self._day = day
         self._working_hours = Swimming_pool.get_working_hours()
+        self._tracks = tracks
 
     def get_working_hours(self):
         '''asking for workinghours of Swimming_pool'''
@@ -32,7 +36,7 @@ class Swimming_pool:
 
 
 class Client:
-    def __init__(self, name, maturity, class_or_cust, group_size=1):
+    def __init__(self, number, name, maturity, class_or_cust, group_size=1):
         """
         defining Client class
         self :: str
@@ -45,30 +49,99 @@ class Client:
         self._maturity = maturity
         self._group_size = group_size
         self._class_or_cust = class_or_cust
+        self._number = number
 
     def name(self) -> str:
         """returning client's name"""
         return self._name
 
     def maturity(self) -> str:
-        return f"{self._name} is {self._maturity}"
+        if self._class_or_cust is False:
+            if self._maturity == 1:
+                return f"Klient {self._name} jest dorosły"
+            else:
+                return f"Klient {self._name} nie jest dorosły"
+        else:
+            return f"Szkółka {self._name} ma {self._maturity} dorosłych pływaków"
+
+    def class_or_cust(self) -> str:
+        if self._class_or_cust is False:
+            return f"{self._name} jest kleintem"
+        else:
+            return f"{self._name} jest szkółką "
+
+    def group_size(self) -> str:
+        return f"{self._name}'s group size is  {self._group_size}"
+
+    def Create_client_from_clients():
+            return List_of_clients.Create_client()
 
 
-class Get_client(Client):
-    def __init__(self, name, maturity, track, water_entry,
-                 booked_hours, class_or_cust, group_size=1):
-        super().__init__(name, maturity, track, water_entry,
-                         booked_hours, class_or_cust, group_size)
+class Create_client(Client):
+    def __init__(self, number, name, maturity, class_or_cust, group_size=1):
+        super().__init__(number, name, maturity, class_or_cust, group_size)
+
+    def input_class_or_cust(self):
+        print("Jeśli klient to szółka pływcka podaj 1 w przeciwnym razie 0")
+        self._class_or_cust = bool(input())
+        if self._class_or_cust is not True or False:
+            print("Źle podałeś wartość - podaj 0 lub 1")
+            Create_client.input_class_or_cust()
+
+    def input_name(self):
+        if self._class_or_cust == 0:
+            name = input("Podaj imię i nazwisko klienta")
+            if (len(name.split(" ")) == 2):
+                self._name = name
+        elif self._class_or_cust == 1:
+            self._name = input("Podaj nazwę szkółki pływackiej")
+
+    def input_group_size(self):
+        if self._class_or_cust == 1:
+            print("Podaj liczbę osób zamierzających pływać w szkółce")
+            self._group_size = input()
+        if self._group_size < 0:
+            print("Źle podałeś wartość - podaj liczbę od 1 do nieksończoności")
+            Create_client.input_group_size()
+
+    def input_marurity(self):
+        if self._group_size == 1:
+            string = "(jeśli tak podaj 1 w przeciwnym razie 0)"
+            maturity = int(input(f"Czy pływak jest dorosły {string}"))
+        elif self._group_size > 1:
+            maturity = int(input("Podaj liczbę dorosłych pływaków"))
+        if maturity <= 0:
+            Create_client.input_marurity()
+
+    def create_clients_number(self):
+        number = []
+        name, surname = self._name.split(" ")
+        number.append((ord(name[0]) % 10))
+        number.append((ord(surname[0]) % 10))
+        number.append()# ????????????
 
     def create_client(self):
-        name = input("Podaj imię i nazwisko klienta")
-        if (len(name .split(" ")) == 2):
-            self._name = name.split(" ")
-        if self._group_size == 1:
-            maturity = input("Czy klient jest dorosły")
-        else:
-            meturity = input("Podaj liczbę dorosłych klientów")
-        i
+        pass
+
+    def client_from_file(number):
+        pass
+
+
+class List_of_clients(Create_client):
+    def __init__(self, number, name, maturity, class_or_cust,
+                 list, group_size=1):
+        super().__init__(number, name, maturity, class_or_cust, group_size)
+        self._list = list
+
+    def get_list(self):
+        with open("clients.json", "r") as json_file:
+            data = json.load(json_file)
+        self._list = data
+
+    def Create_client(self):
+        """Check's if client is on list"""
+        pass
+
 
 class Reservation:
     def __init__(self, client_id, track, water_entry, booked_hours,):
@@ -101,7 +174,8 @@ class Tickets:
 
 
 class Aviability_and_prices(Swimming_pool):
-    def __init__(self, starting_hour, ending_hour, working_hours, track=(-1)):
+    def __init__(self, starting_hour, ending_hour,
+                 working_hours, track=(-1), tracks=1):
         """
         defining Aviability_and_prices class
         self :: str
@@ -109,7 +183,7 @@ class Aviability_and_prices(Swimming_pool):
         ending_hour :: int
         track :: int
         """
-        super().__init__(working_hours)
+        super().__init__(working_hours, tracks)
         self._starting_hour = starting_hour
         self._ending_hour = ending_hour
         self._track = track
@@ -120,14 +194,10 @@ class Aviability_and_prices(Swimming_pool):
     def track_aviable(self) -> bool or int:
         """checks if track is free at asked hour"""
         Table = TimeTable.table()
-        self._Table = Table
-        self._num_rows = Table.shape[0]
-        for i in range(0, self._num_rows):
-            for j in range(1, 3):
-                start = self._starting_hour
-                if start > Table.iloc[i, j] and start < Table.iloc[i, 2]:
-                    return self.suggest_hour(i, j)
-        return True
+        filtered_df = df[df['Age'] > 30]
+
+
+
 
     def suggest_hour(self):
         for i in range(0, self._num_rows):
@@ -156,10 +226,14 @@ class TimeTable(Aviability_and_prices):
         if len(self._Data) == 0:
             TimeTable.import_Data_from_Reservations()
         else:
-            list_name, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(self._Data))))
-        return list_name, list_starting_hour, list_ending_hour, list_track
+            list_numbers, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(self._Data))))
+            Table = DataFrame(array([list_numbers, list_starting_hour,
+                                     list_ending_hour, list_track]),
+                              columns=["clent's_number", "starting_hour",
+                                       "ending_hour", "track"])
+        return Table
 
-    def book(self, other, name, strating_hour, eding_hour, track):
+    def book(self, name, strating_hour, eding_hour, track):
         """Booking track for client"""
         self._Data.append([name, strating_hour, eding_hour, track]) #  ????????????????????????????????
 
