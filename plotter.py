@@ -19,7 +19,9 @@ def get_from_file(file, need):
         data = json.load(json_file)
     return data[need]
 
-def input_mode(mode):
+
+def input_value(values, mode):
+    value = None
     if mode == 0:
         request = 'Podaj nazwę basenu:'
         not_a_type = 'Nazwa basenu jest typu string'
@@ -35,12 +37,7 @@ def input_mode(mode):
         not_a_type = 'Podaj datę w formacie iso RRRR-MM-DD 00-00-00 np. 2077-07-07 07:07:07'
         not_found = ''
         types = datetime
-    return request, not_a_type, not_found, types
 
-
-def input_value(values, mode):
-    value = None
-    request, not_a_type, not_found, types = input_mode(mode)
     while value is None:
         print(request)
         value = input()

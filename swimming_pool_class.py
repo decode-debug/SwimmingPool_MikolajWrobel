@@ -3,7 +3,7 @@ import json
 from random import random
 from pandas import DataFrame
 from numpy import array
-
+import datetime
 
 class Swimming_pool:
     def __init__(self, name, day, tracks=1):
@@ -73,8 +73,8 @@ class Client:
     def group_size(self) -> str:
         return f"{self._name}'s group size is  {self._group_size}"
 
-    def Create_client_from_clients():
-            return List_of_clients.Create_client()
+    def Create_client_from_clientsFile():
+        return Create_client.create_client()
 
 
 class Create_client(Client):
@@ -93,6 +93,8 @@ class Create_client(Client):
             name = input("Podaj imię i nazwisko klienta")
             if (len(name.split(" ")) == 2):
                 self._name = name
+            else:
+                Create_client.input_name
         elif self._class_or_cust == 1:
             self._name = input("Podaj nazwę szkółki pływackiej")
 
@@ -118,13 +120,21 @@ class Create_client(Client):
         name, surname = self._name.split(" ")
         number.append((ord(name[0]) % 10))
         number.append((ord(surname[0]) % 10))
-        number.append()# ????????????
+        number.append()  # ????????????
 
     def create_client(self):
-        pass
+        Create_client.input_class_or_cust
+        Create_client.input_name
+        Create_client.input_group_size
+        Create_client.input_marurity
+        Create_client.create_clients_number
+        check = False
+        check = List_of_clients.Add_client
+        if check is False:
+            SystemError("Something went seriously wrong")
 
     def client_from_file(number):
-        pass
+        List_of_clients.Find_client(number)
 
 
 class List_of_clients(Create_client):
@@ -138,9 +148,20 @@ class List_of_clients(Create_client):
             data = json.load(json_file)
         self._list = data
 
-    def Create_client(self):
+    def Find_client(self, number):
         """Check's if client is on list"""
-        pass
+        for client in self._list:
+            if client[0] == number:
+                return client
+
+    def Add_client(client):
+        with open("clients.json", "a") as json_file:
+            json_file.truncate()
+            json_file.write(' , '.encode())
+            json_file.write(json.dumps(client).encode())
+            json_file.write(']'.encode())
+        List_of_clients.get_list()
+        return True
 
 
 class Reservation:
@@ -169,6 +190,8 @@ class Reservation:
             for i in self._track:
                 a = a + f" {i}"
             return f"group of {self._group_size} named {self._name} occupies tracks{a}"
+
+
 class Tickets:
     pass
 
@@ -194,10 +217,10 @@ class Aviability_and_prices(Swimming_pool):
     def track_aviable(self) -> bool or int:
         """checks if track is free at asked hour"""
         Table = TimeTable.table()
-        filtered_df = df[df['Age'] > 30]
-
-
-
+        datetime_format = "%Y-%m-%d %H:%M:%S"
+        starting_hour = datetime.strptime(self._starting_hour, datetime_format)
+        ending_hour = datetime.strptime(self._ending_hour, datetime_format)
+        filtered_Table = Table[Table['starting_hour'] > 30] #?????????????????????
 
     def suggest_hour(self):
         for i in range(0, self._num_rows):
@@ -216,10 +239,9 @@ class TimeTable(Aviability_and_prices):
 
     def import_Data_from_Reservations(self):
         file = "Reservations.json"
-        with open(file, "r") as json_file:
+        with open(file, 'r') as json_file:
             Data = json.load(json_file)
         self._Data = Data["Data"]
-        return
 
     def table(self):
         """Sorts and decrypts Data"""
@@ -235,7 +257,12 @@ class TimeTable(Aviability_and_prices):
 
     def book(self, name, strating_hour, eding_hour, track):
         """Booking track for client"""
-        self._Data.append([name, strating_hour, eding_hour, track]) #  ????????????????????????????????
+        self._Data.append([name, strating_hour, eding_hour, track])
+
+    def safe_Data_to_Reservations(self):
+        file = "Reservations.json"
+        with open(file, 'w') as json_file:
+            json_file.write(self._Data)
 
 
 class Finance_raport:
