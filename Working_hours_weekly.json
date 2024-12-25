@@ -1,11 +1,1 @@
-{
-    "Week":{
-        "Poniedziałek": [900, 2000],
-        "Wtorek": [900, 2000],
-        "środa": [900, 2000],
-        "Czwartek": [900, 2000],
-        "Piątek": [900, 2000],
-        "Sobota": [1200, 1800],
-        "Niedziela": [null, null]
-    }
-}
+{"Week": {"Poniedzialek": [900, 2000], "Wtorek": [900, 2000], "Sroda": [900, 2000], "Czwartek": [900, 2000], "Piatek": [900, 2000], "Sobota": [1200, 1800], "Niedziela": [null, null]}}
