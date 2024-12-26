@@ -6,22 +6,61 @@ import datetime
 
 
 class file_menagement():
-    def __init__(self, file):
-        self._file = file
+    def __init__(self):
+        pass
 
-    def import_file(self):
-        with (open(self._file, 'r')) as file:
-            return json.load(file)
+    def import_file(self, file):
+        with (open(file, 'r')) as json_file:
+            return json.load(json_file)
 
-    def import_from_file(self, request):
-        with (open(self._file, 'r')) as file:
-            data = json.load(file)
-        return data['Week'][self._request]
+    def import_from_file(self, file, request):
+        with (open(file, 'r')) as json_file:
+            data = json.load(json_file)
+        return data[request]
 
-    def upload_to_file():
+    def safe_to_file_list(self, file, Data, name=0):
+        with open(file, 'w') as json_file:
+            json_file.write("{")
+            json_file.write("\n")
+            json_file.write("   ")
+            if name != 0:
+                json_file.write(f'{name}:')
+                json_file.write("[")
+                json_file.write("\n")
+            for element in Data:
+                json_file.write("       ")
+                json_file.write(json.dumps(element))
+                if element != Data[-1]:
+                    json_file.write(",")
+                json_file.write("\n")
+            json_file.write("    ")
+            json_file.write("]")
+            json_file.write("\n")
+            json_file.write("}")
 
-        open = file_menagement(file, 0, self._day)
-        open.import_from_file()  # ???????????????????
+    def safe_to_file_dict(self, file, Data, name=0):
+        with open(file, 'w') as json_file:
+            json_file.write("{")
+            json_file.write("\n")
+            json_file.write("   ")
+            if name != 0:
+                json_file.write(f'{name}:')
+                json_file.write("{")
+                json_file.write("\n")
+            iter = 1
+            for element in Data:
+                json_file.write("       ")
+                json_file.write(json.dumps(element))
+                json_file.write(":")
+                json_file.write(json.dumps(Data[element]))
+                if iter < len(Data):
+                    iter += 1
+                    json_file.write(",")
+                json_file.write("\n")
+            json_file.write("    ")
+            json_file.write("}")
+            json_file.write("\n")
+            json_file.write("}")
 
 
 class Swimming_pool:
@@ -63,16 +102,12 @@ class Swimming_pool:
     def set_working_hours(self, new_working_hours):
         '''setting workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
-        # length = 0
-        with open(file, 'r') as json_file:
-            Day = json.load(json_file)
-            # length = len(Day['Week'])
-            Day['Week'][f'{self._day}'] = list(new_working_hours)
-        with open(file, 'w') as json_file:
-            json_file.write(json.dumps(Day))
-            # for ii in range(0, length):
-            #     json_file.write(json.dumps(Day['Week'][f'']))
-            #     json_file.write('\n'.encode())
+        # save = file_menagement
+        # save.safe_to_file(file, )
+        open = file_menagement()
+        Day = open.import_from_file(file, "Week")
+        Day[f'{self._day}'] = new_working_hours
+        open.safe_to_file_dict(file, Day, '"Week"')
 
 
 class Client:
@@ -105,23 +140,24 @@ class Client:
         return self._group_size
 
     def __str__(self):
+        group_size = 0
         if self._class_or_cust is False:
-            class_or_cust = f"{self._name} jest kleintem"
+            class_or_cust = f"{self._name} jest kleintem."
         else:
-            class_or_cust = f"{self._name} jest szkółką "
+            class_or_cust = f"{self._name} jest szkółką."
 
         if self._class_or_cust is False:
             if self._maturity == 1:
-                maturity =  f"Klient {self._name} jest dorosły"
+                maturity = f"Klient {self._name} jest dorosły."
             else:
-                maturity = f"Klient {self._name} nie jest dorosły"
+                maturity = f"Klient {self._name} nie jest dorosły."
         else:
-            maturity = f"Szkółka {self._name} ma {self._maturity} dorosłych pływaków"
-        group_size = f"{self._name}'s group size is  {self._group_size}"
+            maturity = f"Szkółka {self._name} ma {self._maturity} dorosłych pływaków."
+            group_size = f"Szkółka {self._name} składa się z {self._group_size}."
         return class_or_cust + maturity + group_size
 
     def Create_client_from_clientsFile():
-        return Create_client.create_client() # ???????????????????
+        return Create_client.create_client()  # ???????????????????
 
     def client_from_file(number):
         List_of_clients.Find_client(number)
@@ -267,7 +303,7 @@ class Aviability_and_prices(Swimming_pool):
         datetime_format = "%Y-%m-%d %H:%M:%S"
         starting_hour = datetime.strptime(self._starting_hour, datetime_format)
         ending_hour = datetime.strptime(self._ending_hour, datetime_format)
-        filtered_Table = Table[Table['starting_hour'] > 30] #?????????????????????
+        filtered_Table = Table[Table['starting_hour'] > 30]  # ??????????????
 
     def suggest_hour(self):
         for i in range(0, self._num_rows):
@@ -276,7 +312,7 @@ class Aviability_and_prices(Swimming_pool):
                     return self._Table.iloc[i, 2]
 
     def book_hour(self):
-        return TimeTable.book() # ???????????????????
+        return TimeTable.book()  # ???????????????????
 
 
 class TimeTable():
@@ -284,11 +320,12 @@ class TimeTable():
         """stores datatable about reservations"""
         self._Data = []
 
+    def get_Data(self):
+        return self._Data
+
     def import_Data_from_Reservations(self):
-        file = "Reservations.json"
-        with open(file, 'r') as json_file:
-            Data = json.load(json_file)
-        self._Data = Data["Data"]
+        get = file_menagement()
+        self._Data = get.import_from_file("Reservations.json", "Data")
 
     def table(self):
         """Sorts and decrypts Data"""
@@ -301,11 +338,17 @@ class TimeTable():
                                  "ending_hour", "track"]).transpose()
         return Table
 
-    def book(self, name, strating_hour, eding_hour, track):
+    def book(self, number, strating_hour, eding_hour, track):
         """Booking track for client"""
-        self._Data.append([name, strating_hour, eding_hour, track])
+        self._Data.append([number, strating_hour, eding_hour, track])
+        self.safe_Data_to_Reservations()
+
+    def remove_booking(self, number, strating_hour, eding_hour, track):
+        """Removes clients reservation"""
+        self._Data.remove([number, strating_hour, eding_hour, track])
+        self.safe_Data_to_Reservations()
 
     def safe_Data_to_Reservations(self):
         file = "Reservations.json"
-        with open(file, 'w') as json_file:
-            json_file.write(self._Data)
+        save = file_menagement()
+        save.safe_to_file_list(file, self._Data, '"Data"')

@@ -97,11 +97,23 @@ def test_create_client_input_class_or_cust():
 
 
 def test_Aviability_and_prices_track_aviable():
-    aviability = Aviability_and_prices()
+    # aviability = Aviability_and_prices()
     pass
 
 
-def test_TimeTable():
+def test_Timetable_get_Data():
+    timetable = TimeTable()
+    timetable.table()
+    data = [
+        ["Alice Police", "2024-11-04 11:00:00", "2024-11-04 13:00:00", 2],
+        ["Bob Marley", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 3],
+        ["Charlie Hudson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 1],
+        ["Arthur Davidson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 6],
+        ["Pletewka", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 5]
+    ]
+    assert timetable.get_Data() == data
+
+def test_TimeTable_table():
     timetable = TimeTable()
 
     def import_Data_from_Reservations():
@@ -117,7 +129,41 @@ def test_TimeTable():
         if len(Data) == 0:
             Data = import_Data_from_Reservations()
         list_numbers, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(Data))))
-        Table = DataFrame(array([list_numbers, list_starting_hour, list_ending_hour, list_track]), index=["clent's_number", "starting_hour", "ending_hour", "track"]).transpose()
+        Table = DataFrame(array([list_numbers, list_starting_hour,
+                                list_ending_hour, list_track]),
+                          index=["clent's_number", "starting_hour",
+                                 "ending_hour", "track"]).transpose()
 
         return Table
     assert timetable.table() == table()
+
+
+def test_TimeTable_book():
+    timetable = TimeTable()
+    timetable.table()
+    timetable.book("Ala Makota", "2024-11-04 11:00:00",
+                   "2024-11-04 11:00:00", 4)
+    data = [
+        ["Alice Police", "2024-11-04 11:00:00", "2024-11-04 13:00:00", 2],
+        ["Bob Marley", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 3],
+        ["Charlie Hudson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 1],
+        ["Arthur Davidson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 6],
+        ["Pletewka", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 5],
+        ["Ala Makota", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 4]
+    ]
+    assert timetable.get_Data() == data
+
+
+def test_TimeTable_remove_book():
+    timetable = TimeTable()
+    timetable.table()
+    timetable.remove_booking("Ala Makota", "2024-11-04 11:00:00",
+                             "2024-11-04 11:00:00", 4)
+    data = [
+        ["Alice Police", "2024-11-04 11:00:00", "2024-11-04 13:00:00", 2],
+        ["Bob Marley", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 3],
+        ["Charlie Hudson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 1],
+        ["Arthur Davidson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 6],
+        ["Pletewka", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 5]
+    ]
+    assert timetable.get_Data() == data
