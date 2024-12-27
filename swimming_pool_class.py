@@ -2,10 +2,10 @@
 import json
 from pandas import DataFrame
 from numpy import array
-import datetime
+from datetime import datetime as dt
 
 
-class file_menagement():
+class File_menagement():
     def __init__(self):
         pass
 
@@ -72,9 +72,10 @@ class Swimming_pool:
         working_hours :: typle
         """
         self._name = name
-        self._day = day
         self._tracks = tracks
+        self._day = day
         self._working_hours = self.load_working_hours()
+        pass
 
     def get_working_hours(self):
         "returns working_hours"
@@ -95,16 +96,15 @@ class Swimming_pool:
     def load_working_hours(self):
         '''asking for workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
-        with open(file, "r") as json_file:
-            Data = json.load(json_file)
-        return Data['Week'][f'{self._day}']
+        load = File_menagement()
+        return load.import_from_file(file, "Week")[f'{self._day}']
 
     def set_working_hours(self, new_working_hours):
         '''setting workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
         # save = file_menagement
         # save.safe_to_file(file, )
-        open = file_menagement()
+        open = File_menagement()
         Day = open.import_from_file(file, "Week")
         Day[f'{self._day}'] = new_working_hours
         open.safe_to_file_dict(file, Day, '"Week"')
@@ -152,8 +152,10 @@ class Client:
             else:
                 maturity = f"Klient {self._name} nie jest dorosły."
         else:
-            maturity = f"Szkółka {self._name} ma {self._maturity} dorosłych pływaków."
-            group_size = f"Szkółka {self._name} składa się z {self._group_size}."
+            str = "dorosłych pływaków."
+            maturity = f"Szkółka {self._name} ma {self._maturity} {str}"
+            str = "składa się z {self._group_size}."
+            group_size = f"Szkółka {self._name} {str}"
         return class_or_cust + maturity + group_size
 
     def Create_client_from_clientsFile():
@@ -272,7 +274,8 @@ class Reservation:
             a = ""
             for i in self._track:
                 a = a + f" {i}"
-            return f"group of {self._group_size} named {self._name} occupies tracks{a}"
+            str = "{self._name} occupies tracks{a}"
+            return f"group of {self._group_size} named {str}"
 
 
 class Tickets:
@@ -280,8 +283,8 @@ class Tickets:
 
 
 class Aviability_and_prices(Swimming_pool):
-    def __init__(self, starting_hour, ending_hour,
-                 working_hours, track=(-1), tracks=1):
+    def __init__(self, starting_hour, ending_hour, name,
+                 day, track=(-1), tracks=1):
         """
         defining Aviability_and_prices class
         self :: str
@@ -289,21 +292,29 @@ class Aviability_and_prices(Swimming_pool):
         ending_hour :: int
         track :: int
         """
-        super().__init__(working_hours, tracks)
+        super().__init__(name, day, tracks)
         self._starting_hour = starting_hour
         self._ending_hour = ending_hour
         self._track = track
-        self._swimming_time = ending_hour - starting_hour
+        self._swimming_time = self.swimming_time()
         self._Table = None
         self._num_rows = None
 
-    def track_aviable(self) -> bool or int:
+    def swimming_time(self):
+        return self.strptime_double(self._ending_hour, self._starting_hour)
+
+    def strptime_double(self, first, second):
+        format = "%Y-%m-%d %H:%M:%S"
+        return dt.strptime(first, format) - dt.strptime(second, format)
+
+    def track_aviable(self) -> bool or int:  # type: ignore
         """checks if track is free at asked hour"""
-        Table = TimeTable.table()
-        datetime_format = "%Y-%m-%d %H:%M:%S"
-        starting_hour = datetime.strptime(self._starting_hour, datetime_format)
-        ending_hour = datetime.strptime(self._ending_hour, datetime_format)
-        filtered_Table = Table[Table['starting_hour'] > 30]  # ??????????????
+        get = TimeTable()
+        Table = get.table()
+        new_Table = Table[Table['starting_hour'] > self._starting_hour]
+        new_Table = new_Table[new_Table['ending_hour'] < self._ending_hour]
+        new_Table = new_Table[new_Table['ending_hour'] > self._starting_hour]
+        new_Table = new_Table[new_Table['ending_hour'] < self._ending_hour]
 
     def suggest_hour(self):
         for i in range(0, self._num_rows):
@@ -324,15 +335,16 @@ class TimeTable():
         return self._Data
 
     def import_Data_from_Reservations(self):
-        get = file_menagement()
+        get = File_menagement()
         self._Data = get.import_from_file("Reservations.json", "Data")
 
     def table(self):
         """Sorts and decrypts Data"""
         if len(self._Data) == 0:
             self.import_Data_from_Reservations()
-        list_numbers, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(self._Data))))
-        Table = DataFrame(array([list_numbers, list_starting_hour,
+        data = list(map(list, zip(*sorted(self._Data))))
+        list_numbers, list_starting_hour, list_ending_hour, list_track = data
+        Table = DataFrame(array([list_numbers,  list_starting_hour,
                                 list_ending_hour, list_track]),
                           index=["clent's_number", "starting_hour",
                                  "ending_hour", "track"]).transpose()
@@ -350,5 +362,5 @@ class TimeTable():
 
     def safe_Data_to_Reservations(self):
         file = "Reservations.json"
-        save = file_menagement()
+        save = File_menagement()
         save.safe_to_file_list(file, self._Data, '"Data"')

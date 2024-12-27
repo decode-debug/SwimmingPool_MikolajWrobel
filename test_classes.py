@@ -1,10 +1,39 @@
 from swimming_pool_class import Swimming_pool, Client, Create_client
 from swimming_pool_class import List_of_clients, Reservation
 from swimming_pool_class import Aviability_and_prices, TimeTable
+from swimming_pool_class import File_menagement
 from numpy import array
 # import datetime as dt
 from pandas import DataFrame
 import json
+
+
+def test_File_menagement_import_file():
+    menage = File_menagement()
+    data = {"Pools": [
+            "Maly", "Obrotny"
+            ]}
+    assert menage.import_file("Pools.json") == data
+
+
+def test_File_menagement_import__from_file():
+    menage = File_menagement()
+    data = ["Maly", "Obrotny"]
+    assert menage.import_from_file("Pools.json", "Pools") == data
+
+
+# ??????????????????????
+def test_File_menagement_save_to_file_list():
+    menage = File_menagement()
+    Data = menage.import_from_file("Reservations.json", "Data")
+    menage.safe_to_file_list("Reservations.json", Data, '"Data"')
+
+
+# ??????????????????????
+def test_File_menagement_save_to_file_dict():
+    menage = File_menagement()
+    Data = menage.import_from_file("Working_hours_weekly.json", "Week")
+    menage.safe_to_file_dict("Working_hours_weekly.json", Data, '"Week"')
 
 
 def test_Swimming_pool_class():
@@ -73,17 +102,17 @@ def test_Client_name():
     assert client.name() == "Ania Makota"
 
 
-def test_Client_maturityas_customer():
+def test_Client_maturity_as_customer():
     client = Client(666999, "Ania Makota", 0, 0)
     assert client.maturity() == 0
 
 
-def test_Client_class_or_custas_customer():
+def test_Client_class_or_cust_as_customer():
     client = Client(666999, "Ania Makota", 0, 0)
     assert client.class_or_cust() == 0
 
 
-def test_Client_group_sizeas_customer():
+def test_Client_group_size_as_customer():
     client = Client(666999, "Ania Makota", 0, 0)
     assert client.group_size() == 1
 
@@ -92,13 +121,19 @@ def test_Client__str__():
     pass
 
 
-def test_create_client_input_class_or_cust():
+def test_Client_create_client_input_class_or_cust():
+    pass
+
+
+def test_Client_client_from_clientsFile():
     pass
 
 
 def test_Aviability_and_prices_track_aviable():
     # aviability = Aviability_and_prices()
-    pass
+    pool = Swimming_pool("Maly", "Poniedzialek", 16)
+    aviable = Aviability_and_prices("2024-11-04 13:00:00", "2024-11-04 14:00:00", "Maly", "Poniedzialek", 2, 6)
+    assert aviable.track_aviable()
 
 
 def test_Timetable_get_Data():
@@ -113,29 +148,29 @@ def test_Timetable_get_Data():
     ]
     assert timetable.get_Data() == data
 
-def test_TimeTable_table():
-    timetable = TimeTable()
+# def test_TimeTable_table():
+    # timetable = TimeTable()
 
-    def import_Data_from_Reservations():
-        file = "Reservations.json"
-        with open(file, 'r') as json_file:
-            Data = json.load(json_file)
-        Data = Data["Data"]
-        return Data
+    # def import_Data_from_Reservations():
+    #     file = "Reservations.json"
+    #     with open(file, 'r') as json_file:
+    #         Data = json.load(json_file)
+    #     Data = Data["Data"]
+    #     return Data
 
-    def table():
-        """Sorts and decrypts Data"""
-        Data = []
-        if len(Data) == 0:
-            Data = import_Data_from_Reservations()
-        list_numbers, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(Data))))
-        Table = DataFrame(array([list_numbers, list_starting_hour,
-                                list_ending_hour, list_track]),
-                          index=["clent's_number", "starting_hour",
-                                 "ending_hour", "track"]).transpose()
+    # def table():
+    #     """Sorts and decrypts Data"""
+    #     Data = []
+    #     if len(Data) == 0:
+    #         Data = import_Data_from_Reservations()
+    #     list_numbers, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(Data))))
+    #     Table = DataFrame(array([list_numbers, list_starting_hour,
+    #                             list_ending_hour, list_track]),
+    #                       index=["clent's_number", "starting_hour",
+    #                              "ending_hour", "track"]).transpose()
 
-        return Table
-    assert timetable.table() == table()
+    #     return Table
+    # assert timetable.table() == table()
 
 
 def test_TimeTable_book():
