@@ -1,7 +1,6 @@
 # from typing import List
 import json
 from pandas import DataFrame
-from numpy import array
 from datetime import datetime as dt
 
 
@@ -111,7 +110,7 @@ class Swimming_pool:
 
 
 class Client:
-    def __init__(self, number, name, maturity, class_or_cust, group_size=1):
+    def __init__(self, id, name, maturity, class_or_cust, group_size=1):
         """
         defining Client class
         self :: str
@@ -124,7 +123,7 @@ class Client:
         self._maturity = maturity
         self._group_size = group_size
         self._class_or_cust = class_or_cust
-        self._number = number
+        self._id = id
 
     def name(self) -> str:
         """returning client's name"""
@@ -140,34 +139,38 @@ class Client:
         return self._group_size
 
     def __str__(self):
-        group_size = 0
-        if self._class_or_cust is False:
-            class_or_cust = f"{self._name} jest kleintem."
+        group_size = ''
+        if self._class_or_cust == 0:
+            class_or_cust = f"{self._name} jest kleintem/ką. "
         else:
-            class_or_cust = f"{self._name} jest szkółką."
+            class_or_cust = f"{self._name} jest szkółką. "
 
-        if self._class_or_cust is False:
+        if self._class_or_cust == 0:
             if self._maturity == 1:
-                maturity = f"Klient {self._name} jest dorosły."
+                maturity = f"Klient/tka {self._name} jest dorosły/a. "
             else:
-                maturity = f"Klient {self._name} nie jest dorosły."
+                maturity = f"Klient/tka {self._name} nie jest dorosły/a. "
         else:
-            str = "dorosłych pływaków."
-            maturity = f"Szkółka {self._name} ma {self._maturity} {str}"
-            str = "składa się z {self._group_size}."
-            group_size = f"Szkółka {self._name} {str}"
+            str = "dorosłych pływaków/czek."
+            maturity = f"Szkółka {self._name} ma {self._maturity} {str} "
+            str = f"pływa dziś {self._group_size} pływaków/czek."
+            group_size = f"W szkółce {self._name} {str}"
         return class_or_cust + maturity + group_size
 
     def Create_client_from_clientsFile():
         return Create_client.create_client()  # ???????????????????
 
-    def client_from_file(number):
+    def client_from_file(self, number):
         List_of_clients.Find_client(number)
+
+    def add_client_to_file(self):
+        add = List_of_clients()
+        add.add_client_to_file()
 
 
 class Create_client(Client):
-    def __init__(self, number, name, maturity, class_or_cust, group_size=1):
-        super().__init__(number, name, maturity, class_or_cust, group_size)
+    def __init__(self):
+        pass
 
     def input_class_or_cust(self):
         print("Jeśli klient to szółka pływcka podaj 1 w przeciwnym razie 0")
@@ -204,48 +207,65 @@ class Create_client(Client):
             self.input_marurity()
 
     def create_clients_number(self):
-        number = []
+        number = 0
         name, surname = self._name.split(" ")
-        number.append((ord(name[0]) % 10))
-        number.append((ord(surname[0]) % 10))
-        number.append()  # ????????????
+        number += 100000 * (ord(name[0]) % 10)
+        number += 10000 * (ord(surname[0]) % 10)
+        file = File_menagement()
+        other_clients = file.import_from_file("Clients.json", "Clients")
+        other_nums = other_clients.keys()
+        danger_nums = [num for num in other_nums if number <= int(num) <= (number+9999)]
+        id = number
+        while id < number+9999:
+            if id in danger_nums:
+                id += 10
+            else:
+                break
+        id_str = str(id)
+        last_digit = 0
+        for digit in id_str:
+            last_digit += int(digit)
+        id += last_digit % 10
+        self._id = id
 
     def create_client(self):
-        self.input_class_or_cust
-        self.input_name
-        self.input_group_size
-        self.input_marurity
-        self.create_clients_number
+        self.input_class_or_cust()
+        self.input_name()
+        self.input_group_size()
+        self.input_marurity()
+        self.create_clients_number()
         check = False
-        check = List_of_clients.Add_client
+        check = Dict_of_clients.Add_client()
         if check is False:
             SystemError("Something went seriously wrong")
 
 
-class List_of_clients(Create_client):
-    def __init__(self, number, name, maturity,
-                 class_or_cust, list, group_size=1):
-        super().__init__(number, name, maturity, class_or_cust, group_size)
-        self._list = list
+class Dict_of_clients():
+    def __init__(self):
+        self._dict = {}
 
-    def get_list(self):
-        with open("clients.json", "r") as json_file:
-            data = json.load(json_file)
-        self._list = data
+    def get_dict(self):
+        open = File_menagement()
+        self._dict = open.import_from_file("clients.json", "Clients")
+        return self._dict
 
     def Find_client(self, number):
         """Check's if client is on list"""
-        for client in self._list:
+        for client in self._dict:
             if client[0] == number:
                 return client
 
-    def Add_client(self, client):
-        with open("clients.json", "a") as json_file:
-            json_file.truncate()
-            json_file.write(' , '.encode())
-            json_file.write(json.dumps(client).encode())
-            json_file.write(']'.encode())
-        self.get_list()
+    def Add_client(self, id, Data):
+        save = File_menagement()
+        self._dict["id"] = Data
+        save.safe_to_file_dict("Clients.json", self._dict, '"Clients"')
+
+        # with open("clients.json", "a") as json_file:
+        #     json_file.truncate()
+        #     json_file.write(' , '.encode())
+        #     json_file.write(json.dumps(client).encode())
+        #     json_file.write(']'.encode())
+        # self.get_list()
         return True
 
 
@@ -323,13 +343,13 @@ class Aviability_and_prices(Swimming_pool):
                     return self._Table.iloc[i, 2]
 
     def book_hour(self):
-        return TimeTable.book()  # ???????????????????
+        return TimeTable.book(self._)  # ???????????????????
 
 
 class TimeTable():
     def __init__(self):
         """stores datatable about reservations"""
-        self._Data = []
+        self._Data = {}
 
     def get_Data(self):
         return self._Data
@@ -342,25 +362,28 @@ class TimeTable():
         """Sorts and decrypts Data"""
         if len(self._Data) == 0:
             self.import_Data_from_Reservations()
-        data = list(map(list, zip(*sorted(self._Data))))
-        list_numbers, list_starting_hour, list_ending_hour, list_track = data
-        Table = DataFrame(array([list_numbers,  list_starting_hour,
-                                list_ending_hour, list_track]),
-                          index=["clent's_number", "starting_hour",
-                                 "ending_hour", "track"]).transpose()
+        Table = DataFrame(self._Data,
+                          columns=["client's_number", "starting_hour",
+                                   "ending_hour", "track"])
         return Table
 
     def book(self, number, strating_hour, eding_hour, track):
         """Booking track for client"""
-        self._Data.append([number, strating_hour, eding_hour, track])
+        self._Data["client's_number"].append(number)
+        self._Data["starting_hour"].append(strating_hour)
+        self._Data["ending_hour"].append(eding_hour)
+        self._Data["track"].append(track)
         self.safe_Data_to_Reservations()
 
     def remove_booking(self, number, strating_hour, eding_hour, track):
         """Removes clients reservation"""
-        self._Data.remove([number, strating_hour, eding_hour, track])
+        self._Data["client's_number"].remove(number)
+        self._Data["starting_hour"].remove(strating_hour)
+        self._Data["ending_hour"].remove(eding_hour)
+        self._Data["track"].remove(track)
         self.safe_Data_to_Reservations()
 
     def safe_Data_to_Reservations(self):
         file = "Reservations.json"
         save = File_menagement()
-        save.safe_to_file_list(file, self._Data, '"Data"')
+        save.safe_to_file_dict(file, self._Data, '"Data"')

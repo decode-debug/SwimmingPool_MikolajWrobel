@@ -1,5 +1,5 @@
 from swimming_pool_class import Swimming_pool, Client, Create_client
-from swimming_pool_class import List_of_clients, Reservation
+from swimming_pool_class import Dict_of_clients, Reservation
 from swimming_pool_class import Aviability_and_prices, TimeTable
 from swimming_pool_class import File_menagement
 from numpy import array
@@ -23,10 +23,10 @@ def test_File_menagement_import__from_file():
 
 
 # ??????????????????????
-def test_File_menagement_save_to_file_list():
-    menage = File_menagement()
-    Data = menage.import_from_file("Reservations.json", "Data")
-    menage.safe_to_file_list("Reservations.json", Data, '"Data"')
+# def test_File_menagement_save_to_file_list():
+#     menage = File_menagement()
+#     Data = menage.import_from_file("Reservations.json", "Data")
+#     menage.safe_to_file_list("Reservations.json", Data, '"Data"')
 
 
 # ??????????????????????
@@ -117,16 +117,37 @@ def test_Client_group_size_as_customer():
     assert client.group_size() == 1
 
 
-def test_Client__str__():
-    pass
+def test_Client__str__immature_client():
+    client = Client(666999, "Ania Makota", 0, 0)
+    string = str(client)
+    assert string == 'Ania Makota jest kleintem/ką. Klient/tka Ania Makota nie jest dorosły/a. '
 
 
-def test_Client_create_client_input_class_or_cust():
-    pass
+def test_Client__str__mature_client():
+    client = Client(666999, "Ania Makota", 1, 0)
+    string = str(client)
+    assert string == 'Ania Makota jest kleintem/ką. Klient/tka Ania Makota jest dorosły/a. '
 
 
-def test_Client_client_from_clientsFile():
-    pass
+def test_Client__str__swimmingclass():
+    client = Client(666999, "Płetewka", 1, 1, 10)
+    string = str(client)
+    assert string == 'Płetewka jest szkółką. Szkółka Płetewka ma 1 dorosłych pływaków/czek. W szkółce Płetewka pływa dziś 10 pływaków/czek.'
+
+
+# def test_Client_create_client_input_class_or_cust():
+#     new_client = Create_client()
+#     new_client.create_client()
+
+
+# def test_Client_client_from_clientsFile():
+#     pass
+
+
+def test_Dict_of_clients_get_dict():
+    get = Dict_of_clients()
+    Data = {'570000': ['Ala Makota', 0, 0, 1], '500000': ['Alice Police', 1, 0, 1], '580000': ['Arthur Davidson', 1, 0, 1], '670000': ['Bob Marley', 1, 0, 1], '720000': ['Charlie Hudson', 0, 0, 1], '080000': ['Pletewka', 5, 1, 10]}
+    assert get.get_dict() == Data
 
 
 def test_Aviability_and_prices_track_aviable():
@@ -139,13 +160,12 @@ def test_Aviability_and_prices_track_aviable():
 def test_Timetable_get_Data():
     timetable = TimeTable()
     timetable.table()
-    data = [
-        ["Alice Police", "2024-11-04 11:00:00", "2024-11-04 13:00:00", 2],
-        ["Bob Marley", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 3],
-        ["Charlie Hudson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 1],
-        ["Arthur Davidson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 6],
-        ["Pletewka", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 5]
-    ]
+    data = {
+        "client's_number": ["Alice Police", "Arthur Davidson", "Bob Marley", "Charlie Hudson", "Pletewka"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "track": [2, 6, 3, 1, 5]
+    }
     assert timetable.get_Data() == data
 
 # def test_TimeTable_table():
@@ -178,14 +198,12 @@ def test_TimeTable_book():
     timetable.table()
     timetable.book("Ala Makota", "2024-11-04 11:00:00",
                    "2024-11-04 11:00:00", 4)
-    data = [
-        ["Alice Police", "2024-11-04 11:00:00", "2024-11-04 13:00:00", 2],
-        ["Bob Marley", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 3],
-        ["Charlie Hudson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 1],
-        ["Arthur Davidson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 6],
-        ["Pletewka", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 5],
-        ["Ala Makota", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 4]
-    ]
+    data = {
+        "client's_number": ["Alice Police", "Arthur Davidson", "Bob Marley", "Charlie Hudson", "Pletewka", "Ala Makota"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "track": [2, 6, 3, 1, 5, 4]
+    }
     assert timetable.get_Data() == data
 
 
@@ -194,11 +212,10 @@ def test_TimeTable_remove_book():
     timetable.table()
     timetable.remove_booking("Ala Makota", "2024-11-04 11:00:00",
                              "2024-11-04 11:00:00", 4)
-    data = [
-        ["Alice Police", "2024-11-04 11:00:00", "2024-11-04 13:00:00", 2],
-        ["Bob Marley", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 3],
-        ["Charlie Hudson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 1],
-        ["Arthur Davidson", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 6],
-        ["Pletewka", "2024-11-04 11:00:00", "2024-11-04 11:00:00", 5]
-    ]
+    data = {
+        "client's_number": ["Alice Police", "Arthur Davidson", "Bob Marley", "Charlie Hudson", "Pletewka"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "track": [2, 6, 3, 1, 5]
+    }
     assert timetable.get_Data() == data
