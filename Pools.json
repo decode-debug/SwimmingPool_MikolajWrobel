@@ -1,5 +1,6 @@
 {
-    "Pools":[
-        "Maly", "Obrotny"
-    ]
-}
+    "Pools":{
+        "Maly":6,
+        "Obrotny":8
+     }
+ }

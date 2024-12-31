@@ -1,0 +1,2 @@
+1) Fix packages
+2) Make Aviability_and_prices.suggest_hour()

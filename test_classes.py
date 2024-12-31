@@ -2,34 +2,26 @@ from swimming_pool_class import Swimming_pool, Client, Create_client
 from swimming_pool_class import Dict_of_clients, Reservation
 from swimming_pool_class import Aviability_and_prices, TimeTable
 from swimming_pool_class import File_menagement
-from numpy import array
-# import datetime as dt
 from pandas import DataFrame
-import json
 
 
 def test_File_menagement_import_file():
     menage = File_menagement()
-    data = {"Pools": [
-            "Maly", "Obrotny"
-            ]}
+    data = {
+            "Pools": {
+                "Maly": 6,
+                "Obrotny": 8
+                }
+        }
     assert menage.import_file("Pools.json") == data
 
 
 def test_File_menagement_import__from_file():
     menage = File_menagement()
-    data = ["Maly", "Obrotny"]
+    data = {"Maly": 6, "Obrotny": 8}
     assert menage.import_from_file("Pools.json", "Pools") == data
 
 
-# ??????????????????????
-# def test_File_menagement_save_to_file_list():
-#     menage = File_menagement()
-#     Data = menage.import_from_file("Reservations.json", "Data")
-#     menage.safe_to_file_list("Reservations.json", Data, '"Data"')
-
-
-# ??????????????????????
 def test_File_menagement_save_to_file_dict():
     menage = File_menagement()
     Data = menage.import_from_file("Working_hours_weekly.json", "Week")
@@ -37,32 +29,37 @@ def test_File_menagement_save_to_file_dict():
 
 
 def test_Swimming_pool_class():
-    pool = Swimming_pool("Maly", "Poniedzialek", 1)
+    pool = Swimming_pool("Maly", "Poniedzialek")
     assert pool
 
 
 def test_Swimming_pool_get_working_hours():
-    pool = Swimming_pool("Maly", "Poniedzialek", 1)
-    assert pool.get_working_hours() == [900, 2000]
+    pool = Swimming_pool("Maly", "Poniedzialek")
+    assert pool.get_working_hours == [900, 2000]
 
 
 def test_Swimming_pool_get_name():
-    pool = Swimming_pool("Maly", "Poniedzialek", 1)
-    assert pool.get_name() == 'Maly'
+    pool = Swimming_pool("Maly", "Poniedzialek")
+    assert pool.get_name == 'Maly'
 
 
 def test_Swimming_pool_get_day():
-    pool = Swimming_pool("Maly", "Poniedzialek", 1)
-    assert pool.get_day() == 'Poniedzialek'
+    pool = Swimming_pool("Maly", "Poniedzialek")
+    assert pool.get_day == 'Poniedzialek'
 
 
 def test_Swimming_pool_get_tracks():
-    pool = Swimming_pool("Maly", "Poniedzialek", 1)
-    assert pool.get_tracks() == 1
+    pool = Swimming_pool("Maly", "Poniedzialek")
+    assert pool.get_tracks == 6
+
+
+def test_Swimming_pool_load_tracks():
+    pool = Swimming_pool("Maly", "Poniedzialek")
+    assert pool.load_tracks() == 6
 
 
 def test_Swimming_pool_load_working_hours():
-    pool = Swimming_pool("Maly", "Poniedzialek", 1)
+    pool = Swimming_pool("Maly", "Poniedzialek")
     assert pool.load_working_hours() == [900, 2000]
 
 
@@ -70,6 +67,18 @@ def test_set_working_hours():
     pool = Swimming_pool("Maly", "Poniedzialek", 1)
     assert pool.load_working_hours() == [900, 2000]
     pool.set_working_hours([900, 2000])
+
+
+def test_set_tracks():
+    pool = Swimming_pool("Maly", "Poniedzialek")
+    assert pool.load_tracks() == 6
+    pool.set_tracks(8)
+
+
+def test_set_tracks_revarse():
+    pool = Swimming_pool("Maly", "Poniedzialek")
+    assert pool.load_tracks() == 8
+    pool.set_tracks(6)
 
 
 def test_Client_as_customer():
@@ -84,55 +93,63 @@ def test_Client_as_group():
 
 def test_Client_maturity_group():
     client = Client(666999, "Pletweka", 0, 1, 69)
-    assert client.maturity() == 0
+    assert client.get_maturity == 0
 
 
 def test_Client_class_or_cust_group():
     client = Client(666999, "Pletweka", 0, 1, 69)
-    assert client.class_or_cust() == 1
+    assert client.get_class_or_cust == 1
 
 
 def test_Client_group_size_group():
     client = Client(666999, "Pletweka", 0, 1, 69)
-    assert client.group_size() == 69
+    assert client.get_group_size == 69
 
 
 def test_Client_name():
     client = Client(666999, "Ania Makota", 0, 0)
-    assert client.name() == "Ania Makota"
+    assert client.get_name == "Ania Makota"
 
 
 def test_Client_maturity_as_customer():
     client = Client(666999, "Ania Makota", 0, 0)
-    assert client.maturity() == 0
+    assert client.get_maturity == 0
 
 
 def test_Client_class_or_cust_as_customer():
     client = Client(666999, "Ania Makota", 0, 0)
-    assert client.class_or_cust() == 0
+    assert client.get_class_or_cust == 0
 
 
 def test_Client_group_size_as_customer():
     client = Client(666999, "Ania Makota", 0, 0)
-    assert client.group_size() == 1
+    assert client.get_group_size == 1
 
 
 def test_Client__str__immature_client():
     client = Client(666999, "Ania Makota", 0, 0)
     string = str(client)
-    assert string == 'Ania Makota jest kleintem/ką. Klient/tka Ania Makota nie jest dorosły/a. '
+    sentance = "Klient/tka Ania Makota nie jest dorosły/a. "
+    assert string == f'Ania Makota jest kleintem/ką. {sentance}'
 
 
 def test_Client__str__mature_client():
     client = Client(666999, "Ania Makota", 1, 0)
     string = str(client)
-    assert string == 'Ania Makota jest kleintem/ką. Klient/tka Ania Makota jest dorosły/a. '
+    sentance = "Klient/tka Ania Makota jest dorosły/a. "
+    assert string == f'Ania Makota jest kleintem/ką. {sentance}'
 
 
 def test_Client__str__swimmingclass():
     client = Client(666999, "Płetewka", 1, 1, 10)
     string = str(client)
-    assert string == 'Płetewka jest szkółką. Szkółka Płetewka ma 1 dorosłych pływaków/czek. W szkółce Płetewka pływa dziś 10 pływaków/czek.'
+    sentance = "Szkółka Płetewka ma 1 dorosłych pływaków/czek."
+    sentance2 = " W szkółce Płetewka pływa dziś 10 pływaków/czek."
+    assert string == f'Płetewka jest szkółką. {sentance}{sentance2}'
+
+
+def test_Client_client_from_file():
+    pass
 
 
 # def test_Client_create_client_input_class_or_cust():
@@ -146,76 +163,138 @@ def test_Client__str__swimmingclass():
 
 def test_Dict_of_clients_get_dict():
     get = Dict_of_clients()
-    Data = {'570000': ['Ala Makota', 0, 0, 1], '500000': ['Alice Police', 1, 0, 1], '580000': ['Arthur Davidson', 1, 0, 1], '670000': ['Bob Marley', 1, 0, 1], '720000': ['Charlie Hudson', 0, 0, 1], '080000': ['Pletewka', 5, 1, 10]}
-    assert get.get_dict() == Data
+    Data = {
+       "570002": ["Ala Makota", 0, 0, 1],
+       "500005": ["Alice Police", 1, 0, 1],
+       "580003": ["Arthur Davidson", 1, 0, 1],
+       "670003": ["Bob Marley", 1, 0, 1],
+       "720009": ["Charlie Hudson", 0, 0, 1],
+       "080008": ["Pletewka", 5, 1, 10],
+       "570013": ["Ania Mapsa", 0, 0, 1]
+    }
+    assert get.get_dict == Data
+
+
+def test_Dict_of_clients_find_client():
+    find = Dict_of_clients()
+    assert find.find_client(570013) == (570013, ['Ania Mapsa', 0, 0, 1])
+
+
+def test_Dict_of_clients_Add_client():
+    add = Dict_of_clients()
+    add.Add_client(570024, ["Ani Mal", 0, 0, 1])
+
+
+def test_Dict_of_clients_remove_client():
+    add = Dict_of_clients()
+    add.remove_client(570024)
+
+
+def test_Aviability_and_prices_find_aviable_track():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00",
+                                    "2024-11-04 14:00:00",
+                                    "Maly", "Poniedzialek", 1)
+    assert aviable.find_aviable_track() == 1
 
 
 def test_Aviability_and_prices_track_aviable():
-    # aviability = Aviability_and_prices()
-    pool = Swimming_pool("Maly", "Poniedzialek", 16)
-    aviable = Aviability_and_prices("2024-11-04 13:00:00", "2024-11-04 14:00:00", "Maly", "Poniedzialek", 2, 6)
-    assert aviable.track_aviable()
+    aviable = Aviability_and_prices("2024-11-04 12:00:00",
+                                    "2024-11-04 14:00:00",
+                                    "Maly", "Poniedzialek")
+    assert aviable.track_aviable(1) is True
+
+
+def test_Aviability_and_prices_risky_reservations():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00",
+                                    "2024-11-04 14:00:00",
+                                    "Maly", "Poniedzialek")
+    Table = aviable.risky_reservations()
+    Table_dict = Table.to_dict(orient="records")  # this step is needed because
+    # in vanilla pytest has not assertion for pd.Datdaframe and I dont want to
+    # force user to get one more datapack. This datapack crashed my python 3.12
+    Data = [{"client's_number": '500005',
+             'starting_hour': '2024-11-04 11:00:00',
+             'ending_hour': '2024-11-04 13:00:00',
+             'track': 2}]
+    assert Table_dict == Data
+
+
+def test_get_swimming_time():
+    aviavble = Aviability_and_prices("2024-11-04 12:00:00",
+                                     "2024-11-04 14:00:00",
+                                     "Maly", "Poniedzialek")
+    assert aviavble.get_tracks == 6
 
 
 def test_Timetable_get_Data():
     timetable = TimeTable()
     timetable.table()
     data = {
-        "client's_number": ["Alice Police", "Arthur Davidson", "Bob Marley", "Charlie Hudson", "Pletewka"],
-        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
-        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "client's_number": ["500005", "580003", "670003", "720009", "080008"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00"],
         "track": [2, 6, 3, 1, 5]
     }
-    assert timetable.get_Data() == data
+    assert timetable.get_Data == data
 
-# def test_TimeTable_table():
-    # timetable = TimeTable()
 
-    # def import_Data_from_Reservations():
-    #     file = "Reservations.json"
-    #     with open(file, 'r') as json_file:
-    #         Data = json.load(json_file)
-    #     Data = Data["Data"]
-    #     return Data
+def test_TimeTable_table():
+    timetable = TimeTable()
 
-    # def table():
-    #     """Sorts and decrypts Data"""
-    #     Data = []
-    #     if len(Data) == 0:
-    #         Data = import_Data_from_Reservations()
-    #     list_numbers, list_starting_hour, list_ending_hour, list_track = list(map(list, zip(*sorted(Data))))
-    #     Table = DataFrame(array([list_numbers, list_starting_hour,
-    #                             list_ending_hour, list_track]),
-    #                       index=["clent's_number", "starting_hour",
-    #                              "ending_hour", "track"]).transpose()
+    def import_Data_from_Reservations():
+        get = File_menagement()
+        return get.import_from_file("Reservations.json", "Data")
 
-    #     return Table
-    # assert timetable.table() == table()
+    def table():
+        """Sorts and decrypts Data"""
+        Data = {}
+        if len(Data) == 0:
+            Data = import_Data_from_Reservations()
+        Table = DataFrame(Data, columns=["client's_number", "starting_hour",
+                                         "ending_hour", "track"])
+        Table_dict = Table.to_dict(orient="records")
+        return Table_dict
+    Table = timetable.table()
+    Table_dict = Table.to_dict(orient="records")
+    assert Table_dict == table()
 
 
 def test_TimeTable_book():
     timetable = TimeTable()
     timetable.table()
-    timetable.book("Ala Makota", "2024-11-04 11:00:00",
+    timetable.book("570002", "2024-11-04 11:00:00",
                    "2024-11-04 11:00:00", 4)
     data = {
-        "client's_number": ["Alice Police", "Arthur Davidson", "Bob Marley", "Charlie Hudson", "Pletewka", "Ala Makota"],
-        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
-        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "client's_number": ["500005", "580003", "670003",
+                            "720009", "080008", "570002"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
         "track": [2, 6, 3, 1, 5, 4]
     }
-    assert timetable.get_Data() == data
+    assert timetable.get_Data == data
 
 
 def test_TimeTable_remove_book():
     timetable = TimeTable()
     timetable.table()
-    timetable.remove_booking("Ala Makota", "2024-11-04 11:00:00",
+    timetable.remove_booking("570002", "2024-11-04 11:00:00",
                              "2024-11-04 11:00:00", 4)
     data = {
-        "client's_number": ["Alice Police", "Arthur Davidson", "Bob Marley", "Charlie Hudson", "Pletewka"],
-        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
-        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "client's_number": ["500005", "580003", "670003", "720009", "080008"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00"],
         "track": [2, 6, 3, 1, 5]
     }
-    assert timetable.get_Data() == data
+    assert timetable.get_Data == data

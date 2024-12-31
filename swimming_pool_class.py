@@ -71,26 +71,36 @@ class Swimming_pool:
         working_hours :: typle
         """
         self._name = name
-        self._tracks = tracks
+        self._tracks = self.load_tracks()
         self._day = day
         self._working_hours = self.load_working_hours()
         pass
 
+    @property
     def get_working_hours(self):
         "returns working_hours"
         return self._working_hours
 
+    @property
     def get_name(self):
         "returns pool name"
         return self._name
 
+    @property
     def get_day(self):
         "returns day of the week"
         return self._day
 
+    @property
     def get_tracks(self):
         "returns ammount of swimming tracks"
         return self._tracks  # ??????????????
+
+    def load_tracks(self):
+        '''asking for ammount of tracks in Swimming_pool'''
+        file = "Pools.json"
+        load = File_menagement()
+        return load.import_from_file(file, "Pools")[f'{self._name}']
 
     def load_working_hours(self):
         '''asking for workinghours of Swimming_pool'''
@@ -98,11 +108,17 @@ class Swimming_pool:
         load = File_menagement()
         return load.import_from_file(file, "Week")[f'{self._day}']
 
+    def set_tracks(self, new_tracks):
+        '''setting ammount of tracks in Swimming_pool'''
+        file = "Pools.json"
+        open = File_menagement()
+        tracks = open.import_from_file(file, "Pools")
+        tracks[f'{self._name}'] = new_tracks
+        open.safe_to_file_dict(file, tracks, '"Pools"')
+
     def set_working_hours(self, new_working_hours):
         '''setting workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
-        # save = file_menagement
-        # save.safe_to_file(file, )
         open = File_menagement()
         Day = open.import_from_file(file, "Week")
         Day[f'{self._day}'] = new_working_hours
@@ -125,17 +141,21 @@ class Client:
         self._class_or_cust = class_or_cust
         self._id = id
 
-    def name(self) -> str:
+    @property
+    def get_name(self) -> str:
         """returning client's name"""
         return self._name
 
-    def maturity(self) -> str:
+    @property
+    def get_maturity(self) -> str:
         return self._maturity
 
-    def class_or_cust(self) -> str:
+    @property
+    def get_class_or_cust(self) -> str:
         return self._class_or_cust
 
-    def group_size(self) -> str:
+    @property
+    def get_group_size(self) -> str:
         return self._group_size
 
     def __str__(self):
@@ -160,12 +180,12 @@ class Client:
     def Create_client_from_clientsFile():
         return Create_client.create_client()  # ???????????????????
 
-    def client_from_file(self, number):
-        List_of_clients.Find_client(number)
+    def client_from_file(self, id):
+        Dict_of_clients.find_client(id)
 
     def add_client_to_file(self):
-        add = List_of_clients()
-        add.add_client_to_file()
+        add = Dict_of_clients()
+        add.Add_client()
 
 
 class Create_client(Client):
@@ -244,33 +264,33 @@ class Dict_of_clients():
     def __init__(self):
         self._dict = {}
 
+    @property
     def get_dict(self):
         open = File_menagement()
         self._dict = open.import_from_file("clients.json", "Clients")
         return self._dict
 
-    def Find_client(self, number):
+    def find_client(self, id):
         """Check's if client is on list"""
-        for client in self._dict:
-            if client[0] == number:
-                return client
+        if len(self._dict) == 0:
+            self.get_dict
+        return id, self._dict[f"{id}"]
 
     def Add_client(self, id, Data):
         save = File_menagement()
-        self._dict["id"] = Data
+        self.get_dict
+        self._dict[f"{id}"] = Data
         save.safe_to_file_dict("Clients.json", self._dict, '"Clients"')
 
-        # with open("clients.json", "a") as json_file:
-        #     json_file.truncate()
-        #     json_file.write(' , '.encode())
-        #     json_file.write(json.dumps(client).encode())
-        #     json_file.write(']'.encode())
-        # self.get_list()
-        return True
+    def remove_client(self, id):
+        save = File_menagement()
+        self.get_dict
+        del self._dict[f"{id}"]
+        save.safe_to_file_dict("Clients.json", self._dict, '"Clients"')
 
 
 class Reservation:
-    def __init__(self, client_id, track, water_entry, booked_hours,):
+    def __init__(self, client_id, track, water_entry, booked_hours):
         """
         client_id :: int
         track :: int
@@ -320,6 +340,14 @@ class Aviability_and_prices(Swimming_pool):
         self._Table = None
         self._num_rows = None
 
+    @property
+    def get_swimming_time(self):
+        return self._swimming_time
+
+    @property
+    def get_tracks(self):
+        return super().get_tracks
+
     def swimming_time(self):
         return self.strptime_double(self._ending_hour, self._starting_hour)
 
@@ -327,20 +355,30 @@ class Aviability_and_prices(Swimming_pool):
         format = "%Y-%m-%d %H:%M:%S"
         return dt.strptime(first, format) - dt.strptime(second, format)
 
-    def track_aviable(self) -> bool or int:  # type: ignore
+    def find_aviable_track(self):
+        if self.track_aviable(self._track) is True:
+            return self._track
+        for track in range(1, self._track+1):
+            if self.track_aviable(track) is True:
+                return track
+
+    def track_aviable(self, track) -> bool or int:  # type: ignore
         """checks if track is free at asked hour"""
+        Hazards = self.risky_reservations()
+        Hazards_track = Hazards[Hazards["track"] == track]
+        if len(Hazards_track) < 5:
+            return True
+        return False
+
+    def risky_reservations(self):
         get = TimeTable()
         Table = get.table()
-        new_Table = Table[Table['starting_hour'] > self._starting_hour]
-        new_Table = new_Table[new_Table['ending_hour'] < self._ending_hour]
-        new_Table = new_Table[new_Table['ending_hour'] > self._starting_hour]
-        new_Table = new_Table[new_Table['ending_hour'] < self._ending_hour]
+        new_Table = Table[~((Table['starting_hour'] >= self._ending_hour) |
+                            (Table['ending_hour'] <= self._starting_hour))]
+        return new_Table
 
     def suggest_hour(self):
-        for i in range(0, self._num_rows):
-            if self._starting_hour <= self._Table.iloc[i, 2]:
-                if self._eding_hour >= self._Table.iloc[i, 1]:
-                    return self._Table.iloc[i, 2]
+        pass
 
     def book_hour(self):
         return TimeTable.book(self._)  # ???????????????????
@@ -351,6 +389,7 @@ class TimeTable():
         """stores datatable about reservations"""
         self._Data = {}
 
+    @property
     def get_Data(self):
         return self._Data
 
