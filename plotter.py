@@ -2,10 +2,11 @@ from swimming_pool_class import Swimming_pool, Client
 from swimming_pool_class import File_menagement, Dict_of_clients
 import json
 import maskpass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import re
 # from InquirerPy import inquirer
 from PyInquirer import prompt
+
 class Create_client():
     def __init__(self):
         pass
@@ -153,7 +154,8 @@ def import_data(selection , geter):
 
     request = 'Podaj datę i godzinę wejścia do basenu, '
     request_ending1 = "proszoną przez klienta w formacie RRRR-MM-DD 00-00-00"
-    incorrect2 = 'Podaj datę w formacie iso RRRR-MM-DD 00-00-00 np. 2077-07-07 07:07:07'
+    incorrect2 = ' np. 2077-07-07 07:07:07'
+    incorrect3 = 'np. 03:30 oznacza 3 godziny i 30 min'
 
     questions = [
 
@@ -162,15 +164,15 @@ def import_data(selection , geter):
             'name': 'pool',
             'message': 'Podaj nazwę basenu:',
             'validate': lambda pool: True if pool in pools
-            else (f'{not_found1}')
+            else f'{not_found1}'
         },
         {
             'type': 'input',
             'name': 'id',
             'message': f"Podaj numer karty klienta {string}",
             'validate': lambda id: True if
-            re.match(r'^\d{6}$' , id) or re.match(r'^\d{1}$' , id)
-            else (f'{incorrect1}')
+            re.match(r'^\d{6}$', id) or re.match(r'^\d{1}$', id)
+            else f'{incorrect1}'
         },
         {
             'type': 'input',
@@ -178,15 +180,16 @@ def import_data(selection , geter):
             'message': f'{request}{request_ending1}',
             'validate': lambda date: True if
             re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', date)
-            else (f'{incorrect2}')
+            else f'Podaj datę w formacie iso RRRR-MM-DD 00-00-00{incorrect2}'
         },
         {
             'type': 'input',
             'name': 'time',
-            'message': "Jak długo klient zamierza pływać",
+            'message': "Jak długo klient zamierza pływać(podaj w formacie HH:MM)",
             'validate': lambda id: True if
-            re.match(r'^\d{1}$', id)
-            else ("Podaj cyfrę przedstawijącą czas w godzinach")
+            re.match(r'^\d{2}:\d{2}$', id) and
+            (time().fromisoformat(id) >= time.fromisoformat("01:00"))
+            else f"Podaj poprawnie czas - w formacie HH:MM {incorrect3}"
         }
 
     ]
@@ -195,6 +198,7 @@ def import_data(selection , geter):
 
 
 def input_value(values, mode):
+
     value = None
     if mode == 0:
         request = 'Podaj nazwę basenu:'
@@ -230,7 +234,8 @@ def run_in_terminal():
             new_client.create_client()
         reserved_from = datetime.fromisoformat(import_data(2, "date"))
         reserved_time = import_data(3, "time")
-        reserved_to = reserved_from + timedelta(hours=int(reserved_time))
+        hours, minutes = reserved_time.split(":")
+        reserved_to = reserved_from + timedelta(int(hours), int(minutes))
         week_day = week_days(reserved_from.weekday())  # day_list would be better but it is for future me
         pool = Swimming_pool(pool_name, week_day)
         terminal = choose_whats_next()

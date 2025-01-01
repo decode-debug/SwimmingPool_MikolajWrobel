@@ -177,87 +177,12 @@ class Client:
             group_size = f"W szkółce {self._name} {str}"
         return class_or_cust + maturity + group_size
 
-    def Create_client_from_clientsFile():
-        return Create_client.create_client()  # ???????????????????
-
     def client_from_file(self, id):
         Dict_of_clients.find_client(id)
 
     def add_client_to_file(self):
         add = Dict_of_clients()
         add.Add_client()
-
-
-class Create_client(Client):
-    def __init__(self):
-        pass
-
-    def input_class_or_cust(self):
-        print("Jeśli klient to szółka pływcka podaj 1 w przeciwnym razie 0")
-        self._class_or_cust = bool(input())
-        if self._class_or_cust is not True or False:
-            print("Źle podałeś wartość - podaj 0 lub 1")
-            self.input_class_or_cust()
-
-    def input_name(self):
-        if self._class_or_cust == 0:
-            name = input("Podaj imię i nazwisko klienta")
-            if (len(name.split(" ")) == 2):
-                self._name = name
-            else:
-                self.input_name
-        elif self._class_or_cust == 1:
-            self._name = input("Podaj nazwę szkółki pływackiej")
-
-    def input_group_size(self):
-        if self._class_or_cust == 1:
-            print("Podaj liczbę osób zamierzających pływać w szkółce")
-            self._group_size = input()
-        if self._group_size < 0:
-            print("Źle podałeś wartość - podaj liczbę od 1 do nieksończoności")
-            self.input_group_size()
-
-    def input_marurity(self):
-        if self._group_size == 1:
-            string = "(jeśli tak podaj 1 w przeciwnym razie 0)"
-            maturity = int(input(f"Czy pływak jest dorosły {string}"))
-        elif self._group_size > 1:
-            maturity = int(input("Podaj liczbę dorosłych pływaków"))
-        if maturity <= 0:
-            self.input_marurity()
-
-    def create_clients_number(self):
-        number = 0
-        name, surname = self._name.split(" ")
-        number += 100000 * (ord(name[0]) % 10)
-        number += 10000 * (ord(surname[0]) % 10)
-        file = File_menagement()
-        other_clients = file.import_from_file("Clients.json", "Clients")
-        other_nums = other_clients.keys()
-        danger_nums = [num for num in other_nums if number <= int(num) <= (number+9999)]
-        id = number
-        while id < number+9999:
-            if id in danger_nums:
-                id += 10
-            else:
-                break
-        id_str = str(id)
-        last_digit = 0
-        for digit in id_str:
-            last_digit += int(digit)
-        id += last_digit % 10
-        self._id = id
-
-    def create_client(self):
-        self.input_class_or_cust()
-        self.input_name()
-        self.input_group_size()
-        self.input_marurity()
-        self.create_clients_number()
-        check = False
-        check = Dict_of_clients.Add_client()
-        if check is False:
-            SystemError("Something went seriously wrong")
 
 
 class Dict_of_clients():
