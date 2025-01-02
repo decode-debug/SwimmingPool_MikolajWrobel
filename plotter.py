@@ -143,7 +143,7 @@ def get_password(pool_name):
         exit()
 
 
-def import_data(selection , geter):
+def import_data(selection, geter):
     get = File_menagement()
     pools = get.import_from_file("Pools.json", 'Pools').keys()
     not_found1 = f'Basen nie istnieje, wpisz jeden z {pools}'
@@ -234,8 +234,6 @@ def run_in_terminal():
             new_client.create_client()
         reserved_from = datetime.fromisoformat(import_data(2, "date"))
         reserved_time = import_data(3, "time")
-        hours, minutes = reserved_time.split(":")
-        reserved_to = reserved_from + timedelta(int(hours), int(minutes))
         week_day = week_days(reserved_from.weekday())  # day_list would be better but it is for future me
         pool = Swimming_pool(pool_name, week_day)
         terminal = choose_whats_next()

@@ -1,5 +1,5 @@
-from swimming_pool_class import Swimming_pool, Client, Create_client
-from swimming_pool_class import Dict_of_clients, Reservation
+from swimming_pool_class import Swimming_pool, Client
+from swimming_pool_class import Dict_of_clients
 from swimming_pool_class import Aviability_and_prices, TimeTable
 from swimming_pool_class import File_menagement
 from pandas import DataFrame
@@ -152,15 +152,6 @@ def test_Client_client_from_file():
     pass
 
 
-# def test_Client_create_client_input_class_or_cust():
-#     new_client = Create_client()
-#     new_client.create_client()
-
-
-# def test_Client_client_from_clientsFile():
-#     pass
-
-
 def test_Dict_of_clients_get_dict():
     get = Dict_of_clients()
     Data = {
@@ -190,25 +181,58 @@ def test_Dict_of_clients_remove_client():
     add.remove_client(570024)
 
 
+def test_Aviability_and_prices_get_swimming_time():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                    "Maly", "Poniedzialek")
+    assert aviable.get_swimming_time == "2:00"
+
+
+def test_Aviability_and_prices_get_tracks():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                    "Maly", "Poniedzialek")
+    assert aviable.get_tracks == 6
+
+
+def test_Aviability_and_prices_get_track():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                    "Maly", "Poniedzialek")
+    assert aviable.get_track == 0
+
+
+def test_Aviability_and_prices_get_ending_hour():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                    "Maly", "Poniedzialek")
+    assert aviable.get_ending_hour == '2024-11-04 14:00:00'
+
+
 def test_Aviability_and_prices_find_aviable_track():
-    aviable = Aviability_and_prices("2024-11-04 12:00:00",
-                                    "2024-11-04 14:00:00",
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                     "Maly", "Poniedzialek", 1)
-    assert aviable.find_aviable_track() == 1
+    test = aviable.risky_reservations("2024-11-04 12:00:00",
+                                      "2024-11-04 14:00:00")
+    assert aviable.find_aviable_track(test) == 1
 
 
 def test_Aviability_and_prices_track_aviable():
-    aviable = Aviability_and_prices("2024-11-04 12:00:00",
-                                    "2024-11-04 14:00:00",
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                     "Maly", "Poniedzialek")
-    assert aviable.track_aviable(1) is True
+    test = aviable.risky_reservations("2024-11-04 12:00:00",
+                                      "2024-11-04 14:00:00")
+    assert aviable.track_aviable(1, test) is True
+
+def test_Aviability_and_prices_any_track_aviable():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                    "Maly", "Poniedzialek")
+    test = aviable.risky_reservations("2024-11-04 12:00:00",
+                                      "2024-11-04 14:00:00")
+    assert aviable.any_track_aviable(test) is True
 
 
 def test_Aviability_and_prices_risky_reservations():
-    aviable = Aviability_and_prices("2024-11-04 12:00:00",
-                                    "2024-11-04 14:00:00",
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                     "Maly", "Poniedzialek")
-    Table = aviable.risky_reservations()
+    Table = aviable.risky_reservations("2024-11-04 12:00:00",
+                                       "2024-11-04 14:00:00")
     Table_dict = Table.to_dict(orient="records")  # this step is needed because
     # in vanilla pytest has not assertion for pd.Datdaframe and I dont want to
     # force user to get one more datapack. This datapack crashed my python 3.12
@@ -219,9 +243,15 @@ def test_Aviability_and_prices_risky_reservations():
     assert Table_dict == Data
 
 
+def test_Aviability_and_prices_suggest_resevation():
+    aviable = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                    "Maly", "Poniedzialek")
+    assert aviable.suggest_resevation() == ("2024-11-04 12:00:00",
+                                            "2024-11-04 14:00:00", 0)
+
+
 def test_get_swimming_time():
-    aviavble = Aviability_and_prices("2024-11-04 12:00:00",
-                                     "2024-11-04 14:00:00",
+    aviavble = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                      "Maly", "Poniedzialek")
     assert aviavble.get_tracks == 6
 

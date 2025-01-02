@@ -2,6 +2,7 @@
 import json
 from pandas import DataFrame
 from datetime import datetime as dt
+from datetime import timedelta
 
 
 class File_menagement():
@@ -214,33 +215,33 @@ class Dict_of_clients():
         save.safe_to_file_dict("Clients.json", self._dict, '"Clients"')
 
 
-class Reservation:
-    def __init__(self, client_id, track, water_entry, booked_hours):
-        """
-        client_id :: int
-        track :: int
-        water_entry :: int
-        booked_hours :: int
-        """
-        self._client_id = client_id
-        self._track = track
-        self._water_entry = water_entry
-        self._booked_hours = booked_hours
+# class Reservation:
+#     def __init__(self, client_id, track, water_entry, booked_hours):
+#         """
+#         client_id :: int
+#         track :: int
+#         water_entry :: int
+#         booked_hours :: int
+#         """
+#         self._client_id = client_id
+#         self._track = track
+#         self._water_entry = water_entry
+#         self._booked_hours = booked_hours
 
-    def tracks(self) -> str:
-        """Printing track occupied by client"""
-        if self._group_size == 1:
-            return f"{self._name} occupies track {self._track[0]}"
-        if self._class_or_cust == 0:
-            a = f"{self._name} occupies track {self._track[0]} "
-            b = f"with {self._group_size - 1} other customers"
-            return a+b
-        else:
-            a = ""
-            for i in self._track:
-                a = a + f" {i}"
-            str = "{self._name} occupies tracks{a}"
-            return f"group of {self._group_size} named {str}"
+#     def tracks(self) -> str:
+#         """Printing track occupied by client"""
+#         if self._group_size == 1:
+#             return f"{self._name} occupies track {self._track[0]}"
+#         if self._class_or_cust == 0:
+#             a = f"{self._name} occupies track {self._track[0]} "
+#             b = f"with {self._group_size - 1} other customers"
+#             return a+b
+#         else:
+#             a = ""
+#             for i in self._track:
+#                 a = a + f" {i}"
+#             str = "{self._name} occupies tracks{a}"
+#             return f"group of {self._group_size} named {str}"
 
 
 class Tickets:
@@ -248,8 +249,8 @@ class Tickets:
 
 
 class Aviability_and_prices(Swimming_pool):
-    def __init__(self, starting_hour, ending_hour, name,
-                 day, track=(-1), tracks=1):
+    def __init__(self, starting_hour, swimming_time, name,
+                 day, track=0, tracks=1):
         """
         defining Aviability_and_prices class
         self :: str
@@ -259,11 +260,9 @@ class Aviability_and_prices(Swimming_pool):
         """
         super().__init__(name, day, tracks)
         self._starting_hour = starting_hour
-        self._ending_hour = ending_hour
+        self._swimming_time = swimming_time
         self._track = track
-        self._swimming_time = self.swimming_time()
-        self._Table = None
-        self._num_rows = None
+        self._ending_hour = self.ending_hour()
 
     @property
     def get_swimming_time(self):
@@ -273,40 +272,63 @@ class Aviability_and_prices(Swimming_pool):
     def get_tracks(self):
         return super().get_tracks
 
-    def swimming_time(self):
-        return self.strptime_double(self._ending_hour, self._starting_hour)
+    @property
+    def get_track(self):
+        return self._track
 
-    def strptime_double(self, first, second):
-        format = "%Y-%m-%d %H:%M:%S"
-        return dt.strptime(first, format) - dt.strptime(second, format)
+    @property
+    def get_ending_hour(self):
+        return self._ending_hour
 
-    def find_aviable_track(self):
-        if self.track_aviable(self._track) is True:
+    def ending_hour(self):
+        return self.add_time(self._starting_hour, self._swimming_time)
+
+    def add_time(self, starting_hour, time):
+        hours,  minutes = time.split(":")
+        add_time = timedelta(0, 0, 0, 0, int(minutes), int(hours))
+        return dt.isoformat(dt.fromisoformat(starting_hour)
+                            + add_time).replace('T', ' ')
+
+    def find_aviable_track(self, Hazards):
+        if self._track == 0 and self.any_track_aviable(Hazards) is True:
             return self._track
-        for track in range(1, self._track+1):
-            if self.track_aviable(track) is True:
-                return track
+        if self.track_aviable(self._track, Hazards) is True:
+            return self._track
+        # """It seems that it is not needed"""
+        # for track in range(1, self._track+1):
+        #     if self.track_aviable(track) is True:
+        #         return track
 
-    def track_aviable(self, track) -> bool or int:  # type: ignore
+    def track_aviable(self, track, Hazards) -> bool or int:  # type: ignore
         """checks if track is free at asked hour"""
-        Hazards = self.risky_reservations()
         Hazards_track = Hazards[Hazards["track"] == track]
         if len(Hazards_track) < 5:
             return True
         return False
 
-    def risky_reservations(self):
+    def any_track_aviable(self, Hazards):
+        """checks if any track is free at asked hour"""
+        if len(Hazards) < self._tracks * 5:
+            return True
+
+    def risky_reservations(self, starting_hour, ending_hour):
         get = TimeTable()
         Table = get.table()
-        new_Table = Table[~((Table['starting_hour'] >= self._ending_hour) |
-                            (Table['ending_hour'] <= self._starting_hour))]
+        new_Table = Table[~((Table['starting_hour'] >= ending_hour) |
+                            (Table['ending_hour'] <= starting_hour))]
         return new_Table
 
-    def suggest_hour(self):
-        pass
-
-    def book_hour(self):
-        return TimeTable.book(self._)  # ???????????????????
+    def suggest_resevation(self):
+        starting_hour = self._starting_hour
+        ending_hour = self._ending_hour
+        while False is False:
+            Hazards = self.risky_reservations(starting_hour, ending_hour)
+            if type(self.find_aviable_track(Hazards)) is int:
+                track = self.find_aviable_track(Hazards)
+                break
+            self.add_time(starting_hour, "00:15")
+            self.add_time(ending_hour, "00:15")
+        return starting_hour, ending_hour, track
 
 
 class TimeTable():
