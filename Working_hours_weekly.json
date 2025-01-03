@@ -1,11 +1,11 @@
 {
     "Week":{
-        "Poniedzialek":[900, 2000],
-        "Wtorek":[900, 2000],
-        "Sroda":[900, 2000],
-        "Czwartek":[900, 2000],
-        "Piatek":[900, 2000],
-        "Sobota":[1200, 1800],
-        "Niedziela":[null, null]
+        "Monday":["09:00", "20:00"],
+        "Tuesday":["09:00", "20:00"],
+        "Wednesday":["09:00", "20:00"],
+        "Thursday":["09:00", "20:00"],
+        "Friday":["09:00", "20:00"],
+        "Saturday":["12:00", "18:00"],
+        "Sunday":[null, null]
      }
  }

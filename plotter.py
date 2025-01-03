@@ -1,11 +1,18 @@
-from swimming_pool_class import Swimming_pool, Client
+from swimming_pool_class import Aviability_and_prices
 from swimming_pool_class import File_menagement, Dict_of_clients
 import json
 import maskpass
-from datetime import datetime, timedelta, time
+from datetime import datetime as dt
+from datetime import time
 import re
+from colorama import Fore, Back, Style, init
 # from InquirerPy import inquirer
 from PyInquirer import prompt
+
+
+class change_prices():
+    pass
+
 
 class Create_client():
     def __init__(self):
@@ -47,6 +54,20 @@ class Create_client():
             self._group_size = int(prompt(question)['data'])
         elif self._class_or_cust == 0:
             self._group_size = 1
+
+    def input_bithday(self):
+        question = {
+            'type': 'input',
+            'name': 'day',
+            'message': "Podaj liczbę osób zamierzających pływać w szkółce: ",
+            'validate': lambda day: True if
+            re.match(r'^\d{4}:\d{2}:\d{2}$', day)
+            else "Źle podałeś wartość - podaj 1 lub 0"
+        }
+        if self._class_or_cust == 0:
+            self._birthday = int(prompt(question)['day'])
+        elif self._class_or_cust == 1:
+            self._birthday = "Not a person"
 
     def input_marurity(self):
         if self._group_size == 1:
@@ -102,10 +123,11 @@ class Create_client():
         self.input_class_or_cust()
         self.input_name()
         self.input_group_size()
+        self.input_bithday()
         self.input_marurity()
         self.create_clients_number()
         new_client = Dict_of_clients()
-        Data = [self._name, self._maturity,
+        Data = [self._name, self._birthday, self._maturity,
                 self._class_or_cust, self._group_size]
         new_client.Add_client(self._id, Data)
         if self._class_or_cust == 1:
@@ -128,12 +150,6 @@ def choose_whats_next():
     choices = "zamknąć terminal(1), dodać nową rezerwację(0)"
     selected_option = input(f"Co chcesz dalej robić: {choices}")
     return selected_option
-
-
-def week_days(day):
-    days = ["Poniedzialek", "Wtorek", "sroda",
-            "Czwartek", "Piatek", "Sobota", "Niedziela"]
-    return days[day]
 
 
 def get_password(pool_name):
@@ -190,33 +206,18 @@ def import_data(selection, geter):
             re.match(r'^\d{2}:\d{2}$', id) and
             (time().fromisoformat(id) >= time.fromisoformat("01:00"))
             else f"Podaj poprawnie czas - w formacie HH:MM {incorrect3}"
+        },
+        {
+            'type': 'input',
+            'name': 'track',
+            'message': "Na jakim torze klient zamierza pływać",
+            'validate': lambda id: True if re.match(r'^\d{1}$', id)
+            else "Podaj poprawnie tor - w formacie 0"
         }
 
     ]
     ans = prompt(questions[selection])
     return ans[geter]
-
-
-def input_value(values, mode):
-
-    value = None
-    if mode == 0:
-        request = 'Podaj nazwę basenu:'
-        not_found = f'Basen pod nazwą {value} nie istnieje, wpisz jeden z {values}'
-    elif mode == 1:
-        request = 'Podaj dzień tygodnia w, którym klient chce pływać:'
-        not_found = f'Dzień {value} nie istnieje, wpisz jeden z {values}'
-    elif mode == 2:
-        # str2 = ' 2077-07-07 07:07:07'
-        not_found = ''
-
-    while value is None:
-        print(request)
-        value = input()
-        if value not in values and mode != 2:
-            value = None
-            ValueError(not_found)
-    return value
 
 
 def bootapp():
@@ -232,18 +233,21 @@ def run_in_terminal():
         if card_id == "0":
             new_client = Create_client()
             new_client.create_client()
-        reserved_from = datetime.fromisoformat(import_data(2, "date"))
+        reserved_from = import_data(2, "date")
         reserved_time = import_data(3, "time")
-        week_day = week_days(reserved_from.weekday())  # day_list would be better but it is for future me
-        pool = Swimming_pool(pool_name, week_day)
+        track = import_data(4, "track")
+        available = Aviability_and_prices(reserved_from, reserved_time,
+                                          pool_name, track)
+        starting_hour, ending_hour, track = available.suggest_resevation()
         terminal = choose_whats_next()
 
 
 def main():
-    print('Gdzie chcesz odpalić program')
-    print("W aplikacji czy Terminalu:")
+    print(f'{Style.BRIGHT}{Fore.MAGENTA}Gdzie chcesz odpalić program')
+    print(f"{Fore.CYAN}W aplikacji czy Terminalu:{Style.NORMAL}{Fore.YELLOW}")
     a = input()
     if a.lower() == "terminal" or a.lower() == 't':
+        print(f"{Fore.MAGENTA}", end="")
         run_in_terminal()
     elif a.lower() == "aplikacja" or 'a':
         bootapp()
