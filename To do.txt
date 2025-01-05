@@ -1,2 +1,4 @@
 1) Fix bugs with report
 2) Add reaction to user not knowing his reservation number
+3) Add reaction to not existing file
+4) Add fining file in folder back
