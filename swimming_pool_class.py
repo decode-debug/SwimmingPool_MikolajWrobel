@@ -450,9 +450,6 @@ class Aviability_and_prices(Swimming_pool):
         return starting_hour, ending_hour, track
 
 
-
-
-
 class Price(Client):
     def __init__(self, id, res_numer):
         super().__init__(id)
@@ -460,8 +457,8 @@ class Price(Client):
         self._res_numer = res_numer
 
         self._clients_age = self.client_age()
+        self._clients_age_type = self.clients_age_type()
         self._swimming_time = self.swimming_time()
-
         self._reservation = self.find_reservation()
         self._day = self.day()
         self._weekday = self.weekday_()
@@ -470,6 +467,18 @@ class Price(Client):
     @property
     def get_price(self):
         return self._price
+
+    @property
+    def get_swimming_time(self):
+        return self._swimming_time
+
+    @property
+    def get_clients_age(self):
+        return self._clients_age
+
+    @property
+    def get_clients_age_type(self):
+        return self._clients_age_type
 
     def import_prices(self):
         get = File_menagement()
@@ -517,11 +526,60 @@ class Price(Client):
         reservation = self.find_reservation()
         starting_hour = dt.fromisoformat(reservation["starting_hour"][0])
         ending_hour = dt.fromisoformat(reservation["ending_hour"][0])
-        return ending_hour - starting_hour
+        return (ending_hour - starting_hour).total_seconds() // 3600
 
     def price(self):
         fees, discounts = self.import_prices()
-        fee = fees[self.clients_age_type()]
+        fee = fees[self._clients_age_type]
         discount = (1-(discounts[self._weekday])/100)
-        hours = self._swimming_time.total_seconds() // 3600
+        hours = self._swimming_time
         return int(int(fee*discount)*hours)
+
+
+class earnings_meanagement(File_menagement):
+    def __init__(self, day: dt, income: int = 0, tax: int = 0):
+        super().__init__()
+        self._earnings = self.earnings_from_file()
+        self._day = day
+        self._income = income
+        self._tax = tax
+        self._days_gross = 0
+        self._days_tax = 0
+        self._day_earnings = self.day_earnings()
+
+    @property
+    def get_day_earnings(self):
+        return self._day_earnings
+
+    @property
+    def get_days_gross(self):
+        return self._day_earnings
+
+    @property
+    def get_days_tax(self):
+        return self._day_earnings
+
+    def earnings_from_file(self):
+        return self.import_from_file("Made_money.json", "Money")
+
+    def find_all_day_earnings(self):
+        for key in self._day_earnings.keys():
+            self._days_gross += self._day_earnings[key]["Gross imcome"]
+            self._days_tax += self._day_earnings[key]["Tax"]
+
+    def day_earnings(self):
+        self._day_earnings = {}
+        for key in self._earnings.keys():
+            if dt.fromisoformat(key).date() == self._day.date():
+                self._day_earnings[key] = self._earnings[key]
+
+    def add_earnings(self):
+        self._earnings[self._day] = {
+                "Gross imcome": self._income,
+                "Tax": self._tax
+        }
+
+    def save_new_eranings(self):
+        self.add_earnings()
+        self.safe_to_file_dict("Made_money.json", self._earnings,
+                               "w", '"Money"')

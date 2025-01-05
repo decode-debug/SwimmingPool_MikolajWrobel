@@ -1,5 +1,2 @@
-1) Fix packages
-2) Make Aviability_and_prices.suggest_hour() ////Done////
-3) Fix importing data Gordian knot
-5) Add finance raport class
-6) Add prices class
+1) Fix bugs with report
+2) Add reaction to user not knowing his reservation number

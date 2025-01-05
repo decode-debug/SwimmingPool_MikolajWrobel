@@ -1,6 +1,6 @@
 from swimming_pool_class import Aviability_and_prices, Swimming_pool
 from swimming_pool_class import File_menagement, Dict_of_clients
-from swimming_pool_class import TimeTable, Price
+from swimming_pool_class import TimeTable, Price, earnings_meanagement
 import json
 import maskpass
 from datetime import datetime as dt
@@ -10,6 +10,8 @@ from colorama import Fore, Back, Style, init
 # from InquirerPy import inquirer
 # from prompt_toolkit import prompt
 from PyInquirer import prompt
+from datetime import date
+import math
 
 
 class change_prices():
@@ -147,7 +149,8 @@ def choose_whats_next():
         'type': 'list',
         'name': 'choice',
         'message': 'Choose an option:',
-        'choices': ["Zamknięcie programu", "Rezerwacja", "Płatność", 'Option 4'],
+        'choices': ["Zamknięcie programu", "Rezerwacja",
+                    "Płatność", "Raport Finansowy"],
     }]
     answers = prompt(questions)
     print(f"Wybrałeś: {answers['choice']}")
@@ -195,14 +198,14 @@ class Get_from_keyboard():
     def import_pool(self):
         get = File_menagement()
         pools = get.import_from_file("Pools.json", 'Pools').keys()
-        not_found1 = f'Basen nie istnieje, wpisz jeden z {pools}'
+        not_found = f'Basen nie istnieje, wpisz jeden z {pools}'
 
         questions = [{
                 'type': 'input',
                 'name': 'data',
                 'message': 'Podaj nazwę basenu:',
                 'validate': lambda pool: True if pool in pools
-                else f'{not_found1}'
+                else f'{not_found}'
             }]
         ans = prompt(questions[0])
         return ans["data"]
@@ -210,15 +213,15 @@ class Get_from_keyboard():
     def import_id(self):
         string = "(Jeśli klient jescze nie ma id wpisz 0)"
         stri = "poinformuj że go nie ma pisząc 0"
-        incorrect1 = f"Podaj poprawenie id [w formacie 0000000] lub {stri}"
+        incorrect = f"Podaj poprawenie id [w formacie 0000000] lub {stri}"
 
         questions = [{
                 'type': 'input',
                 'name': 'data',
-                'message': f"Podaj numer karty klienta {string}",
+                'message': f"Podaj numer karty klienta {string}:",
                 'validate': lambda id: True if
                 re.match(r'^\d{6}$', id) or re.match(r'^\d{1}$', id)
-                else f'{incorrect1}'
+                else f'{incorrect}'
             }]
         ans = prompt(questions[0])
         return ans["data"]
@@ -226,51 +229,82 @@ class Get_from_keyboard():
     def import_swimming_start(self):
         request = 'Podaj datę i godzinę wejścia do basenu, '
         request_ending = "proszoną przez klienta w formacie RRRR-MM-DD 00-00-00"
-        incorrect = ' np. 2077-07-07 07:07:07'
+        incorrect = 'RRRR-MM-DD 00:00:00 np. 2077-07-07 07:07:07'
         questions = [{
                 'type': 'input',
                 'name': 'data',
-                'message': f'{request}{request_ending}',
+                'message': f'{request}{request_ending}:',
                 'validate': lambda date: True if
                 re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', date)
-                else f'Podaj datę w formacie iso RRRR-MM-DD 00-00-00{incorrect}'
+                else f'Podaj datę w formacie iso {incorrect}'
             }]
         ans = prompt(questions[0])
         return ans["data"]
 
     def import_swimming_time(self):
-        incorrect3 = 'np. 03:30 oznacza 3 godziny i 30 min'
+        incorrect = 'np. 03:30 oznacza 3 godziny i 30 min'
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': "Jak długo klient zamierza pływać(podaj w formacie HH:MM)",
+            'message': "Jak długo klient zamierza pływać(podaj w formacie HH:MM):",
             'validate': lambda id: True if
             re.match(r'^\d{2}:\d{2}$', id) and
             (time().fromisoformat(id) >= time.fromisoformat("01:00"))
-            else f"Podaj poprawnie czas - w formacie HH:MM {incorrect3}"
+            else f"Podaj poprawnie czas - w formacie HH:MM {incorrect}"
         }]
         ans = prompt(questions[0])
         return ans["data"]
 
     def import_track(self, pool_name):
-        request2 = "klient zamierza pływać(podaj liczbę z przedziału [1,"
-        request_ending2 = ''
+        request = "klient zamierza pływać(podaj liczbę z przedziału [1,"
+        request_ending = ''
         if pool_name != '':
             tracks = self.get_tracks(pool_name)
             request_ending2 = f"{tracks}], jeśli klientowi wszystko jedno wpisz 0)"
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': f"Na jakim torze {request2}{request_ending2}",
+            'message': f"Na jakim torze {request}{request_ending}:",
             'validate': lambda track: True if 0 <= int(track) <= tracks
             else f"Podaj poprawnie tor jako liczbę z przedziału [0,{tracks}]"
         }]
         ans = prompt(questions[0])
         return ans["data"]
 
-    def import_cost():
-        cost = Price()
-        return cost.get_price
+    def import_res_data(self):
+        questions = [{
+            'type': 'input',
+            'name': 'data',
+            'message': "Podaj numer rezerwacji klienta, jeśli klient już wpisał swoje wszystkie, wpisz 0:",
+            # 'validate': lambda track:
+            # else f"Podaj poprawnie liczbę"
+        }]
+        ans = prompt(questions[0])
+        return ans["data"]
+
+    def import_assert_paynment(self):
+        questions = [{
+            'type': 'input',
+            'name': 'data',
+            'message': "Czy klient zapłacił",
+            'validate': lambda pay: True if pay in ['Tak', 'Nie']
+            else "Podaj poprawnie daną (Tak/Nie)"
+        }]
+        ans = prompt(questions[0])
+        return ans["data"]
+
+    def import_day(self):
+        incorrect = ' np. 2077-07-07 07:07:07'
+        questions = [{
+            'type': 'input',
+            'name': 'data',
+            'message': "Który dzień cię intersuje:",
+            'validate': lambda date: True if
+            re.match(r'^\d{4}-\d{2}-\d{2}$', date)
+            else f'Podaj datę w formacie iso RRRR-MM-DD{incorrect}'
+        }]
+        ans = prompt(questions[0])
+        return ans["data"]
 
 
 class Reservation_suggestion_handler():
@@ -322,15 +356,127 @@ class Reservation_suggestion_handler():
         self.decision()
 
 
-class Payment_handler():
+class Payment_handler(Get_from_keyboard):
     def __init__(self):
-        pass
+        super().__init__()
 
-    def print_bill():
-        pass
+    def get_single_payment(self, id, resevation):
+        """It can not be parted since I can pay fro more thean one swimming"""
+        bill = Price(id, resevation)
+        price = bill.get_price
+        swimming_time = bill.get_swimming_time
+        age_type = bill.get_clients_age_type
+        return price, swimming_time, age_type
 
-    def assert_paynment():
-        pass
+    def get_payment_data(self):
+        data = []
+        id = int(self.import_id())
+        while id != 0:
+            res = int(self.import_res_data())
+            while res != 0:
+                one_payment = self.get_single_payment(id, res), id, res
+                data.append(one_payment)
+                res = int(self.import_res_data())
+            id = int(self.import_id())
+        return data
+
+    def print_date_and_time(self):
+        self._today = date.today()
+        self._datetime = dt.today().strftime("%Y-%m-%d %H:%M:%S")
+        now = dt.now()
+        self._current_time = now.strftime("%H:%M:%S")
+        print("DATE:", self._today, self._current_time)
+
+    def age_type_pol(self, age):
+        ages = {
+            "Adult": "Dorosły",
+            "Kid_up_to_12": "Dziecko do 12 lat",
+            "Kid_up_to_3": "Dziecko do 3 lat"
+        }
+        return ages[age]
+
+    def print_billing_data(self, reservation, position):
+        age = self.age_type_pol(reservation[0][2])
+        print(f'{position:3}. Wiek: {age}, Czas: {reservation[0][1]:5}', end='')
+        print(f', Cena:{reservation[0][0]//100:3}.{reservation[0][0]%100:2}')
+
+    def print_payments(self):
+        self._total_price = 0
+        ii = 0
+        data = self.get_payment_data()
+        print('--------------------------------------------')
+        self.print_date_and_time()
+        print('--------------------------------------------')
+        for reservation in data:
+            ii += 1
+            self.print_billing_data(reservation, ii)
+            self._total_price += reservation[0][0]
+        self._total_price = self._total_price
+
+    def tax(self):
+        tax_to_round = (self._total_price * 0.08)
+        self._tax = math.ceil(tax_to_round)
+
+    def assert_paynment(self):
+        pay = self.import_assert_paynment()
+        if pay == "Tak":
+            return True
+        elif pay == "Nie":
+            return False
+
+    def save_earned_money(self):
+        save = earnings_meanagement(self._datetime, self._total_price, self._tax)
+        if self.assert_paynment() is True:
+            save.save_new_eranings()
+
+    def print_bill(self):
+        self.print_payments()
+        self.tax()
+        print('--------------------------------------------')
+        print(f'Płatność: {self._total_price//100:>31}.{self._total_price%100:2}')
+        print(f'Podatek: {self._tax//100:>32}.{self._tax%100:2}')
+        print('--------------------------------------------')
+        self.save_earned_money()
+
+
+class Finance_raport_handler(Get_from_keyboard):
+    def __init__(self):
+        super().__init__()
+        self._day = self.import_days_earnigs()
+
+    def import_days_earnigs(self):
+        return self.import_day()
+
+    def print_all_day_transactions(self):
+        money = earnings_meanagement(self._day)
+        earnings = money.get_day_earnings
+        ii = 0
+        for earning in earnings:
+            ii += 1
+            hour = earning.key()
+            gross = earning[hour]["Gross imcome"]
+            tax = earning[hour]["Tax"]
+            print(f"{ii}.{hour} Brutto: {gross//100:>5}.", end='')
+            print(f"{gross%100:2} Podatek: {tax//100:>5}.{tax%100:2}", end='')
+            print(f" Netto: {(gross - tax)//100:>5}.{(gross - tax)%100:2}")
+
+    def print_all_day_income(self):
+        money = earnings_meanagement(self._day)
+        gross = money.get_days_gross
+        tax = money.get_days_tax
+        print(f"Brutto: {gross//100:>5}.", end='')
+        print(f"{gross%100:2} Podatek: {tax//100:>5}.{tax%100:2}", end='')
+        print(f" Netto: {(gross - tax)//100:>5}.{(gross - tax)%100:2}")
+
+    def print_report(self):
+        print('--------------------------------------------')
+        self.print_all_day_transactions()
+        print('--------------------------------------------')
+        self.print_all_day_income()
+
+    def report(self):
+        self.import_days_earnigs()
+        self.print_report()
 
 
 class decision_handlers(Get_from_keyboard):
@@ -339,8 +485,6 @@ class decision_handlers(Get_from_keyboard):
         self._pool_name = pool_name
 
     def reservation_handler(self):
-        pass
-        pass
         id = self.import_id()
         if id == "0":
             new_client = Create_client()
@@ -352,11 +496,14 @@ class decision_handlers(Get_from_keyboard):
                                                  self._pool_name, track, id)
         suggest.reservation_suggestion()
 
-    def Payment_handler(self):
+    def payment_handler(self):
         pay = Payment_handler()
-        cost = self.import_cost()
-        pay.print_bill(cost)
-        pay.assert_paynment()
+        pay.print_bill()
+
+    def finance_raport(self):
+        report = Finance_raport_handler()
+        report.report()
+
 
 
 def bootapp():
@@ -372,8 +519,10 @@ def run_in_terminal():
     while terminal != "Zamknięcie programu":
         if terminal == "Rezerwacja":
             decision.reservation_handler()
-        if terminal == "Płatność":
-            decision.Payment_handler()
+        elif terminal == "Płatność":
+            decision.payment_handler()
+        elif terminal == "Raport Finansowy":
+            decision.finance_raport()
         terminal = choose_whats_next()
 
 

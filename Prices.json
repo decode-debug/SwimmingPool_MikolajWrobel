@@ -1,7 +1,7 @@
 {
     "Hourly_fee": {
-        "Adult":50,
-        "Kid_up_to_12":25,
+        "Adult":5000,
+        "Kid_up_to_12":2500,
         "Kid_up_to_3":0
     },
     "Discounts":{

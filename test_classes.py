@@ -197,8 +197,9 @@ def test_TimeTable_table():
         Data = {}
         if len(Data) == 0:
             Data = import_Data_from_Reservations()
-        Table = DataFrame(Data, columns=["client's_id", "starting_hour",
-                                         "ending_hour", "track"])
+        Table = DataFrame(Data, columns=["reservation_num", "client's_id",
+                                         "starting_hour", "ending_hour",
+                                         "track"])
         Table_dict = Table.to_dict(orient="records")
         return Table_dict
     Table = timetable.table()
@@ -392,4 +393,4 @@ def test_Price__init__():
 
 def test_Price_price():
     prices = Price(500005, 1)
-    assert prices.price() == 74
+    assert prices.price() == 7500
