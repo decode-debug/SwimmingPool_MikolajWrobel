@@ -1,5 +1,6 @@
-from swimming_pool_class import Aviability_and_prices
+from swimming_pool_class import Aviability_and_prices, Swimming_pool
 from swimming_pool_class import File_menagement, Dict_of_clients
+from swimming_pool_class import TimeTable, Price
 import json
 import maskpass
 from datetime import datetime as dt
@@ -7,6 +8,7 @@ from datetime import time
 import re
 from colorama import Fore, Back, Style, init
 # from InquirerPy import inquirer
+# from prompt_toolkit import prompt
 from PyInquirer import prompt
 
 
@@ -78,7 +80,7 @@ class Create_client():
             maturity = "Podaj liczbę dorosłych pływaków: "
             wrong = f"Źle podałeś/aś wartość - podaj liczbę całkowitą od 0 do {self._group_size}"
 
-        question = {
+        question = [{
             'type': 'input',
             'name': 'mature',
             'message': f"{maturity}",
@@ -86,7 +88,7 @@ class Create_client():
             if (self._group_size == 1) and (mature == '1' or mature == '0') or
             (self._group_size > 1) and (int(mature) <= self._group_size)
             else f"{wrong}"
-        }
+        }]
         self._maturity = int(prompt(question)['mature'])
 
     def create_clients_number(self):
@@ -141,83 +143,220 @@ class Create_client():
 
 
 def choose_whats_next():
-    # choices = ["zamknąć terminal", "dodać nową rezerwację"]
-    # selected_option = inquirer.select(
-    #     message="Co chcesz dalej robić:",
-    #     choices=choices
-    # ).execute()
-    # print(f"You selected: {selected_option}")
-    choices = "zamknąć terminal(1), dodać nową rezerwację(0)"
-    selected_option = input(f"Co chcesz dalej robić: {choices}")
-    return selected_option
+    questions = [{
+        'type': 'list',
+        'name': 'choice',
+        'message': 'Choose an option:',
+        'choices': ["Zamknięcie programu", "Rezerwacja", "Płatność", 'Option 4'],
+    }]
+    answers = prompt(questions)
+    print(f"Wybrałeś: {answers['choice']}")
+    return answers['choice']
 
 
-def get_password(pool_name):
-    get = File_menagement()
-    password = maskpass.advpass()
-    if password != get.import_from_file("passwords.json", pool_name):
-        exit()
+class Get_from_keyboard():
+    def __init__(self):
+        pass
 
+    def get_password(self, pool_name):
+        get = File_menagement()
+        password = maskpass.advpass()
+        if password != get.import_from_file("passwords.json", pool_name):
+            exit()
 
-def import_data(selection, geter):
-    get = File_menagement()
-    pools = get.import_from_file("Pools.json", 'Pools').keys()
-    not_found1 = f'Basen nie istnieje, wpisz jeden z {pools}'
+    def get_tracks(self, pool_name):
+        pool = Swimming_pool(pool_name)
+        tracks = pool.get_tracks
+        return tracks
 
-    string = "(Jeśli klient jescze nie ma id wpisz 0)"
-    stri = "poinformuj że go nie ma pisząc 0"
-    incorrect1 = f"Podaj poprawenie id [w formacie 0000000] lub {stri}"
+    def import_decision(self):
+        str = "godzinę(wpisz Tak lub Nie)"
+        inncorrect = "tak wpisz Tak jeśli nie Nie"
+        question = [
+            {
+                'type': 'input',
+                'name': 'data',
+                'message': f'Czy klient chce zarezreowawać na tę {str}',
+                'validate': lambda data: True if data in ["Tak", "Nie"]
+                else f"Podaj decyzję klienta jeśli {inncorrect}"
+            }
+         ]
+        return prompt(question[0])["data"]
 
-    request = 'Podaj datę i godzinę wejścia do basenu, '
-    request_ending1 = "proszoną przez klienta w formacie RRRR-MM-DD 00-00-00"
-    incorrect2 = ' np. 2077-07-07 07:07:07'
-    incorrect3 = 'np. 03:30 oznacza 3 godziny i 30 min'
+    def yes_no(self):
+        questions = [{
+            'type': 'list',
+            'name': 'choice',
+            'message': 'Choose an option:',
+            'choices': ["Tak", "Nie"],
+        }]
+        return prompt(questions)
 
-    questions = [
+    def import_pool(self):
+        get = File_menagement()
+        pools = get.import_from_file("Pools.json", 'Pools').keys()
+        not_found1 = f'Basen nie istnieje, wpisz jeden z {pools}'
 
-        {
+        questions = [{
+                'type': 'input',
+                'name': 'data',
+                'message': 'Podaj nazwę basenu:',
+                'validate': lambda pool: True if pool in pools
+                else f'{not_found1}'
+            }]
+        ans = prompt(questions[0])
+        return ans["data"]
+
+    def import_id(self):
+        string = "(Jeśli klient jescze nie ma id wpisz 0)"
+        stri = "poinformuj że go nie ma pisząc 0"
+        incorrect1 = f"Podaj poprawenie id [w formacie 0000000] lub {stri}"
+
+        questions = [{
+                'type': 'input',
+                'name': 'data',
+                'message': f"Podaj numer karty klienta {string}",
+                'validate': lambda id: True if
+                re.match(r'^\d{6}$', id) or re.match(r'^\d{1}$', id)
+                else f'{incorrect1}'
+            }]
+        ans = prompt(questions[0])
+        return ans["data"]
+
+    def import_swimming_start(self):
+        request = 'Podaj datę i godzinę wejścia do basenu, '
+        request_ending = "proszoną przez klienta w formacie RRRR-MM-DD 00-00-00"
+        incorrect = ' np. 2077-07-07 07:07:07'
+        questions = [{
+                'type': 'input',
+                'name': 'data',
+                'message': f'{request}{request_ending}',
+                'validate': lambda date: True if
+                re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', date)
+                else f'Podaj datę w formacie iso RRRR-MM-DD 00-00-00{incorrect}'
+            }]
+        ans = prompt(questions[0])
+        return ans["data"]
+
+    def import_swimming_time(self):
+        incorrect3 = 'np. 03:30 oznacza 3 godziny i 30 min'
+        questions = [{
             'type': 'input',
-            'name': 'pool',
-            'message': 'Podaj nazwę basenu:',
-            'validate': lambda pool: True if pool in pools
-            else f'{not_found1}'
-        },
-        {
-            'type': 'input',
-            'name': 'id',
-            'message': f"Podaj numer karty klienta {string}",
-            'validate': lambda id: True if
-            re.match(r'^\d{6}$', id) or re.match(r'^\d{1}$', id)
-            else f'{incorrect1}'
-        },
-        {
-            'type': 'input',
-            'name': 'date',
-            'message': f'{request}{request_ending1}',
-            'validate': lambda date: True if
-            re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', date)
-            else f'Podaj datę w formacie iso RRRR-MM-DD 00-00-00{incorrect2}'
-        },
-        {
-            'type': 'input',
-            'name': 'time',
+            'name': 'data',
             'message': "Jak długo klient zamierza pływać(podaj w formacie HH:MM)",
             'validate': lambda id: True if
             re.match(r'^\d{2}:\d{2}$', id) and
             (time().fromisoformat(id) >= time.fromisoformat("01:00"))
             else f"Podaj poprawnie czas - w formacie HH:MM {incorrect3}"
-        },
-        {
-            'type': 'input',
-            'name': 'track',
-            'message': "Na jakim torze klient zamierza pływać",
-            'validate': lambda id: True if re.match(r'^\d{1}$', id)
-            else "Podaj poprawnie tor - w formacie 0"
-        }
+        }]
+        ans = prompt(questions[0])
+        return ans["data"]
 
-    ]
-    ans = prompt(questions[selection])
-    return ans[geter]
+    def import_track(self, pool_name):
+        request2 = "klient zamierza pływać(podaj liczbę z przedziału [1,"
+        request_ending2 = ''
+        if pool_name != '':
+            tracks = self.get_tracks(pool_name)
+            request_ending2 = f"{tracks}], jeśli klientowi wszystko jedno wpisz 0)"
+        questions = [{
+            'type': 'input',
+            'name': 'data',
+            'message': f"Na jakim torze {request2}{request_ending2}",
+            'validate': lambda track: True if 0 <= int(track) <= tracks
+            else f"Podaj poprawnie tor jako liczbę z przedziału [0,{tracks}]"
+        }]
+        ans = prompt(questions[0])
+        return ans["data"]
+
+    def import_cost():
+        cost = Price()
+        return cost.get_price
+
+
+class Reservation_suggestion_handler():
+    def __init__(self, reserved_from, reserved_time, pool_name, track, id):
+        self._reserved_from = reserved_from
+        self._reserved_time = reserved_time
+        self._pool_name = pool_name
+        self._track = int(track)
+        self._id = id
+        self._sugg_starting = None
+        self._sugg_ending = None
+        self._sugg_track = None
+
+    def check_reservation_aviablity(self):
+        available = Aviability_and_prices(self._reserved_from,
+                                          self._reserved_time,
+                                          self._pool_name, self._track)
+        suggestion = available.suggest_resevation()
+        self._sugg_starting, self._sugg_ending, self._sugg_track = suggestion
+
+    def plot_reservation(self):
+        print("Sugestia rezerwacji:")
+        print(f"> godzina wejścia do wody: {self._sugg_starting}")
+        print(f"> godzina wyjścia z wody: {self._sugg_ending}")
+        print(f"> tor : {self._sugg_track}")
+
+    def decision(self):
+        decide = Get_from_keyboard()
+        decision = decide.import_decision()
+        if decision == "Tak":
+            book = TimeTable()
+            book.book(self._id, self._sugg_starting,
+                      self._sugg_ending, self._track)
+            self.report_and_save()
+
+    def report_and_save(self):
+        print(f"{Style.BRIGHT}{Fore.GREEN}Rezerwacja przyjęta")
+        print(f"{Fore.RED}Czy chcesz cofnąć akcję?")
+        yes_no = Get_from_keyboard()
+        if yes_no.yes_no() == "Tak":
+            removebook = TimeTable()
+            removebook.remove_booking(self._id, self._sugg_starting,
+                                      self._sugg_ending, self._track)
+        print(f"{Fore.CYAN}", end="")
+
+    def reservation_suggestion(self):
+        self.check_reservation_aviablity()
+        self.plot_reservation()
+        self.decision()
+
+
+class Payment_handler():
+    def __init__(self):
+        pass
+
+    def print_bill():
+        pass
+
+    def assert_paynment():
+        pass
+
+
+class decision_handlers(Get_from_keyboard):
+    def __init__(self, pool_name):
+        super().__init__()
+        self._pool_name = pool_name
+
+    def reservation_handler(self):
+        pass
+        pass
+        id = self.import_id()
+        if id == "0":
+            new_client = Create_client()
+            new_client.create_client()
+        reserved_from = self.import_swimming_start()
+        reserved_time = self.import_swimming_time()
+        track = self.import_track(self._pool_name)
+        suggest = Reservation_suggestion_handler(reserved_from, reserved_time,
+                                                 self._pool_name, track, id)
+        suggest.reservation_suggestion()
+
+    def Payment_handler(self):
+        pay = Payment_handler()
+        cost = self.import_cost()
+        pay.print_bill(cost)
+        pay.assert_paynment()
 
 
 def bootapp():
@@ -225,29 +364,25 @@ def bootapp():
 
 
 def run_in_terminal():
-    pool_name = import_data(0, "pool")
-    get_password(pool_name)
-    terminal = 0
-    while terminal == 0:
-        card_id = import_data(1, "id")
-        if card_id == "0":
-            new_client = Create_client()
-            new_client.create_client()
-        reserved_from = import_data(2, "date")
-        reserved_time = import_data(3, "time")
-        track = import_data(4, "track")
-        available = Aviability_and_prices(reserved_from, reserved_time,
-                                          pool_name, track)
-        starting_hour, ending_hour, track = available.suggest_resevation()
+    get = Get_from_keyboard()
+    pool_name = get.import_pool()
+    decision = decision_handlers(pool_name)
+    get.get_password(pool_name)
+    terminal = choose_whats_next()
+    while terminal != "Zamknięcie programu":
+        if terminal == "Rezerwacja":
+            decision.reservation_handler()
+        if terminal == "Płatność":
+            decision.Payment_handler()
         terminal = choose_whats_next()
 
 
 def main():
-    print(f'{Style.BRIGHT}{Fore.MAGENTA}Gdzie chcesz odpalić program')
-    print(f"{Fore.CYAN}W aplikacji czy Terminalu:{Style.NORMAL}{Fore.YELLOW}")
+    print(f'{Style.BRIGHT}{Fore.CYAN}Gdzie chcesz odpalić program')
+    print(f"W aplikacji czy Terminalu:{Style.NORMAL}{Fore.YELLOW}")
     a = input()
     if a.lower() == "terminal" or a.lower() == 't':
-        print(f"{Fore.MAGENTA}", end="")
+        print(f"{Fore.CYAN}", end="")
         run_in_terminal()
     elif a.lower() == "aplikacja" or 'a':
         bootapp()
@@ -257,4 +392,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    print('What do you want to do')

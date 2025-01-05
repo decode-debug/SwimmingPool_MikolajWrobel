@@ -1,6 +1,6 @@
 # from typing import List
 import json
-from pandas import DataFrame
+from pandas import DataFrame, concat
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
@@ -65,7 +65,7 @@ class File_menagement():
 
 
 class Swimming_pool:
-    def __init__(self, name, day=dt.today().date(), tracks=1):
+    def __init__(self, name, tracks=1):
         """
         defining Swimming_pool class
         self :: str
@@ -74,14 +74,6 @@ class Swimming_pool:
         """
         self._name = name
         self._tracks = self.load_tracks()
-        self._day = day
-        self._weekday = self.weekday_()
-        self._working_hours = self.load_working_hours()
-
-    @property
-    def get_working_hours(self):
-        "returns working_hours"
-        return self._working_hours
 
     @property
     def get_name(self):
@@ -93,25 +85,11 @@ class Swimming_pool:
         "returns ammount of swimming tracks"
         return self._tracks  # ??????????????
 
-    def weekdays_(self, day):
-        days = ["Monday", "Tuesday", "Wednesday",
-                "Thrusday", "Friday", "Saturday", "Sunday"]
-        return days[day]
-
-    def weekday_(self):
-        return self.weekdays_(self._day.weekday())
-
     def load_tracks(self):
         '''asking for ammount of tracks in Swimming_pool'''
         file = "Pools.json"
         load = File_menagement()
         return load.import_from_file(file, "Pools")[f'{self._name}']
-
-    def load_working_hours(self):
-        '''asking for workinghours of Swimming_pool'''
-        file = "Working_hours_weekly.json"
-        load = File_menagement()
-        return load.import_from_file(file, "Week")[f'{self._weekday}']
 
     def set_tracks(self, new_tracks):
         '''setting ammount of tracks in Swimming_pool'''
@@ -120,14 +98,6 @@ class Swimming_pool:
         tracks = open.import_from_file(file, "Pools")
         tracks[f'{self._name}'] = new_tracks
         open.safe_to_file_dict(file, tracks, "w", '"Pools"')
-
-    def set_working_hours(self, new_working_hours):
-        '''setting workinghours of Swimming_pool'''
-        file = "Working_hours_weekly.json"
-        open = File_menagement()
-        Day = open.import_from_file(file, "Week")
-        Day[f'{self._weekday}'] = new_working_hours
-        open.safe_to_file_dict(file, Day, "w", '"Week"')
 
 
 class Client:
@@ -274,9 +244,70 @@ class Tickets:
     pass
 
 
+class TimeTable():
+    def __init__(self):
+        """stores datatable about reservations"""
+        self._Data = self.import_Data_from_Reservations()
+        self._Table = self.table()
+
+    @property
+    def get_Data(self):
+        return self._Data
+
+    @property
+    def get_Table(self):
+        return self._Table
+
+    def import_Data_from_Reservations(self):
+        get = File_menagement()
+        return get.import_from_file("Reservations.json", "Data")
+
+    def table(self):
+        """Sorts and decrypts Data"""
+        Table = DataFrame(self._Data,
+                          columns=["reservation_num", "client's_id",
+                                   "starting_hour", "ending_hour", "track"])
+        return Table
+
+    def book(self, id, strating_hour, eding_hour, track):
+        """Booking track for client"""
+        number = self.new_reservation_number(id)
+        new_row = {"reservation_num": number,
+                   "client's_id": id, "starting_hour": strating_hour,
+                   "ending_hour": eding_hour, "track": track}
+        self._Table = concat([self._Table, DataFrame([new_row])],
+                             ignore_index=True)
+        self._Data = self._Table.to_dict(orient='list')
+        self.safe_Data_to_Reservations()
+
+
+    def new_reservation_number(self, id):
+        Table = self._Table[self._Table["client's_id"] == id]
+        numbers = Table.to_dict(orient='list')["reservation_num"]
+        try:
+            return numbers[-1] + 1
+        except:
+            return 1
+
+    def remove_booking(self, id, strating_hour, eding_hour, track):
+        """Removes clients reservation"""
+        self._Table = self._Table[~((self._Table["client's_id"] == id) &
+                                    (self._Table[
+                                        "starting_hour"] == strating_hour) &
+                                    (self._Table[
+                                        "ending_hour"] == eding_hour) &
+                                    (self._Table["track"] == track))]
+        self._Data = self._Table.to_dict(orient='list')
+        self.safe_Data_to_Reservations()
+
+    def safe_Data_to_Reservations(self):
+        file = "Reservations.json"
+        save = File_menagement()
+        save.safe_to_file_dict(file, self._Data, "w", '"Data"')
+
+
 class Aviability_and_prices(Swimming_pool):
-    def __init__(self, starting_hour, swimming_time, name,
-                 track=0, tracks=1):
+    def __init__(self, starting_hour, swimming_time, name, track=0):
         """
         defining Aviability_and_prices class
         self :: str
@@ -284,12 +315,21 @@ class Aviability_and_prices(Swimming_pool):
         ending_hour :: int
         track :: int
         """
+        super().__init__(name)
+        # TimeTable.__init__(self)
         day = dt.fromisoformat(starting_hour).date()
-        super().__init__(name, day, tracks)
+        self._day = day
         self._starting_hour = starting_hour
         self._swimming_time = swimming_time
-        self._track = track
+        self._weekday = self.weekday_()
+        self._working_hours = self.load_working_hours()
+        self._track = int(track)
         self._ending_hour = self.ending_hour()
+
+    @property
+    def get_working_hours(self):
+        "returns working_hours"
+        return self._working_hours
 
     @property
     def get_swimming_time(self):
@@ -307,6 +347,28 @@ class Aviability_and_prices(Swimming_pool):
     def get_ending_hour(self):
         return self._ending_hour
 
+    def load_working_hours(self):
+        '''asking for workinghours of Swimming_pool'''
+        file = "Working_hours_weekly.json"
+        load = File_menagement()
+        return load.import_from_file(file, "Week")[f'{self._weekday}']
+
+    def set_working_hours(self, new_working_hours):
+        '''setting workinghours of Swimming_pool'''
+        file = "Working_hours_weekly.json"
+        open = File_menagement()
+        Day = open.import_from_file(file, "Week")
+        Day[f'{self._weekday}'] = new_working_hours
+        open.safe_to_file_dict(file, Day, "w", '"Week"')
+
+    def weekdays_(self, day):
+        days = ["Monday", "Tuesday", "Wednesday",
+                "Thrusday", "Friday", "Saturday", "Sunday"]
+        return days[day]
+
+    def weekday_(self):
+        return self.weekdays_(self._day.weekday())
+
     def ending_hour(self):
         return self.add_time(self._starting_hour, self._swimming_time, 0)
 
@@ -318,7 +380,10 @@ class Aviability_and_prices(Swimming_pool):
 
     def find_available_track(self, Hazards):
         if self._track == 0 and self.any_track_available(Hazards) is True:
-            return self._track
+            track = 1
+            while track <= self._tracks:
+                if self.track_available(self._track, Hazards) is True:
+                    return track
         if self.track_available(self._track, Hazards) is True:
             return self._track
 
@@ -385,67 +450,26 @@ class Aviability_and_prices(Swimming_pool):
         return starting_hour, ending_hour, track
 
 
-class TimeTable():
-    def __init__(self):
-        """stores datatable about reservations"""
-        self._Data = {}
 
-    @property
-    def get_Data(self):
-        return self._Data
-
-    @property
-    def get_Table(self):
-        return self.table()
-
-    def import_Data_from_Reservations(self):
-        get = File_menagement()
-        self._Data = get.import_from_file("Reservations.json", "Data")
-
-    def table(self):
-        """Sorts and decrypts Data"""
-        if len(self._Data) == 0:
-            self.import_Data_from_Reservations()
-        Table = DataFrame(self._Data,
-                          columns=["client's_id", "starting_hour",
-                                   "ending_hour", "track"])
-        return Table
-
-    def book(self, id, strating_hour, eding_hour, track):
-        """Booking track for client"""
-        self._Data["client's_id"].append(id)
-        self._Data["starting_hour"].append(strating_hour)
-        self._Data["ending_hour"].append(eding_hour)
-        self._Data["track"].append(track)
-        self.safe_Data_to_Reservations()
-
-    def remove_booking(self, id, strating_hour, eding_hour, track):
-        """Removes clients reservation"""
-        self._Data["client's_id"].remove(id)
-        self._Data["starting_hour"].remove(strating_hour)
-        self._Data["ending_hour"].remove(eding_hour)
-        self._Data["track"].remove(track)
-        self.safe_Data_to_Reservations()
-
-    def safe_Data_to_Reservations(self):
-        file = "Reservations.json"
-        save = File_menagement()
-        save.safe_to_file_dict(file, self._Data, "w", '"Data"')
-
-
-class Payment():
-    def __init__(self):
-        pass
 
 
 class Price(Client):
-    def __init__(self, id, day=dt.today().date()):
+    def __init__(self, id, res_numer):
         super().__init__(id)
-        self._day = day
-        self._weekday = self.weekday_()
+
+        self._res_numer = res_numer
+
         self._clients_age = self.client_age()
-        self._price = self.price()
         self._swimming_time = self.swimming_time()
+
+        self._reservation = self.find_reservation()
+        self._day = self.day()
+        self._weekday = self.weekday_()
+        self._price = self.price()
+
+    @property
+    def get_price(self):
+        return self._price
 
     def import_prices(self):
         get = File_menagement()
@@ -469,7 +493,7 @@ class Price(Client):
         get = TimeTable()
         get.get_Table
 
-    def cleints_age_type(self):
+    def clients_age_type(self):
         if self._clients_age >= timedelta(12*365):
             return "Adult"
         elif timedelta(3*365) <= self._clients_age < timedelta(12*365):
@@ -478,8 +502,26 @@ class Price(Client):
         elif timedelta(0*365) <= self._clients_age < timedelta(3*365):
             return "Kid_up_to_3"
 
+    def find_reservation(self):
+        get = TimeTable()
+        Table = get.get_Table
+        row = Table[(Table["reservation_num"] == self._res_numer) &
+                    (Table["client's_id"] == str(self._id))]
+        return row
+
+    def day(self):
+        reservation = self.find_reservation()
+        return dt.fromisoformat(reservation["starting_hour"][0]).date()
+
+    def swimming_time(self):
+        reservation = self.find_reservation()
+        starting_hour = dt.fromisoformat(reservation["starting_hour"][0])
+        ending_hour = dt.fromisoformat(reservation["ending_hour"][0])
+        return ending_hour - starting_hour
+
     def price(self):
         fees, discounts = self.import_prices()
-        fee = fees[self.cleints_age_type()]
+        fee = fees[self.clients_age_type()]
         discount = (1-(discounts[self._weekday])/100)
-        return int(fee*discount)*self._swimming_time
+        hours = self._swimming_time.total_seconds() // 3600
+        return int(int(fee*discount)*hours)

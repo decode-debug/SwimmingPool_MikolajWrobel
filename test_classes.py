@@ -34,9 +34,7 @@ def test_Swimming_pool_class():
     assert pool
 
 
-def test_Swimming_pool_get_working_hours():
-    pool = Swimming_pool("Maly")
-    assert pool.get_working_hours == ["09:00", "20:00"]
+
 
 
 def test_Swimming_pool_get_name():
@@ -54,15 +52,7 @@ def test_Swimming_pool_load_tracks():
     assert pool.load_tracks() == 6
 
 
-def test_Swimming_pool_load_working_hours():
-    pool = Swimming_pool("Maly")
-    assert pool.load_working_hours() == ["09:00", "20:00"]
 
-
-def test_set_working_hours():
-    pool = Swimming_pool("Maly", dt.fromisoformat("2024-12-30"))
-    assert pool.load_working_hours() == ["09:00", "20:00"]
-    pool.set_working_hours(["09:00", "20:00"])
 
 
 def test_set_tracks():
@@ -178,6 +168,89 @@ def test_Dict_of_clients_remove_client():
     add.remove_client(570024)
 
 
+def test_Timetable_get_Data():
+    timetable = TimeTable()
+    timetable.table()
+    data = {
+        "reservation_num": [1, 1, 1, 1, 1],
+        "client's_id": ["500005", "580003", "670003", "720009", "080008"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00"],
+        "track": [2, 6, 3, 1, 5]
+    }
+    assert timetable.get_Data == data
+
+
+def test_TimeTable_table():
+    timetable = TimeTable()
+
+    def import_Data_from_Reservations():
+        get = File_menagement()
+        return get.import_from_file("Reservations.json", "Data")
+
+    def table():
+        """Sorts and decrypts Data"""
+        Data = {}
+        if len(Data) == 0:
+            Data = import_Data_from_Reservations()
+        Table = DataFrame(Data, columns=["client's_id", "starting_hour",
+                                         "ending_hour", "track"])
+        Table_dict = Table.to_dict(orient="records")
+        return Table_dict
+    Table = timetable.table()
+    Table_dict = Table.to_dict(orient="records")
+    assert Table_dict == table()
+
+
+def test_TimeTable_book():
+    timetable = TimeTable()
+    timetable.table()
+    timetable.book("570002", "2024-11-04 11:00:00",
+                   "2024-11-04 11:00:00", 4)
+    data = {
+        "reservation_num": [1, 1, 1, 1, 1, 1],
+        "client's_id": ["500005", "580003", "670003",
+                        "720009", "080008", "570002"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
+        "track": [2, 6, 3, 1, 5, 4]
+    }
+    assert timetable.get_Data == data
+
+
+def test_TimeTable_remove_book():
+    timetable = TimeTable()
+    timetable.table()
+    timetable.remove_booking("570002", "2024-11-04 11:00:00",
+                             "2024-11-04 11:00:00", 4)
+    data = {
+        "reservation_num":[1, 1, 1, 1, 1],
+        "client's_id": ["500005", "580003", "670003", "720009", "080008"],
+        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                          "2024-11-04 11:00:00"],
+        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
+                        "2024-11-04 11:00:00"],
+        "track": [2, 6, 3, 1, 5]
+    }
+    assert timetable.get_Data == data
+
+
+def test_Aviability_and_prices_get_working_hours():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    assert available.get_working_hours == ["09:00", "20:00"]
+
+
 def test_Aviability_and_prices_get_swimming_time():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
@@ -206,6 +279,19 @@ def test_Aviability_and_prices_get_ending_hour():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
     assert available.get_ending_hour == '2024-11-04 14:00:00'
+
+
+def test_Swimming_pool_load_working_hours():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    assert available.load_working_hours() == ["09:00", "20:00"]
+
+
+def test_set_working_hours():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    assert available.load_working_hours() == ["09:00", "20:00"]
+    available.set_working_hours(["09:00", "20:00"])
 
 
 def test_Aviability_and_prices_find_available_track():
@@ -240,7 +326,8 @@ def test_Aviability_and_prices_risky_reservations():
     Table_dict = Table.to_dict(orient="records")  # this step is needed because
     # in vanilla pytest has not assertion for pd.Datdaframe and I dont want to
     # force user to get one more datapack. This datapack crashed my python 3.12
-    Data = [{"client's_id": '500005',
+    Data = [{'reservation_num': 1,
+             "client's_id": '500005',
              'starting_hour': '2024-11-04 11:00:00',
              'ending_hour': '2024-11-04 13:00:00',
              'track': 2}]
@@ -296,87 +383,13 @@ def test_Aviability_and_prices_suggest_resevation():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
     returned = available.suggest_resevation()
-    assert returned == ("2024-11-04 12:00:00", "2024-11-04 14:00:00", 0)
-
-
-def test_Timetable_get_Data():
-    timetable = TimeTable()
-    timetable.table()
-    data = {
-        "client's_id": ["500005", "580003", "670003", "720009", "080008"],
-        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                          "2024-11-04 11:00:00"],
-        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
-                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                        "2024-11-04 11:00:00"],
-        "track": [2, 6, 3, 1, 5]
-    }
-    assert timetable.get_Data == data
-
-
-def test_TimeTable_table():
-    timetable = TimeTable()
-
-    def import_Data_from_Reservations():
-        get = File_menagement()
-        return get.import_from_file("Reservations.json", "Data")
-
-    def table():
-        """Sorts and decrypts Data"""
-        Data = {}
-        if len(Data) == 0:
-            Data = import_Data_from_Reservations()
-        Table = DataFrame(Data, columns=["client's_id", "starting_hour",
-                                         "ending_hour", "track"])
-        Table_dict = Table.to_dict(orient="records")
-        return Table_dict
-    Table = timetable.table()
-    Table_dict = Table.to_dict(orient="records")
-    assert Table_dict == table()
-
-
-def test_TimeTable_book():
-    timetable = TimeTable()
-    timetable.table()
-    timetable.book("570002", "2024-11-04 11:00:00",
-                   "2024-11-04 11:00:00", 4)
-    data = {
-        "client's_id": ["500005", "580003", "670003",
-                        "720009", "080008", "570002"],
-        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                          "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
-        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
-                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                        "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
-        "track": [2, 6, 3, 1, 5, 4]
-    }
-    assert timetable.get_Data == data
-
-
-def test_TimeTable_remove_book():
-    timetable = TimeTable()
-    timetable.table()
-    timetable.remove_booking("570002", "2024-11-04 11:00:00",
-                             "2024-11-04 11:00:00", 4)
-    data = {
-        "client's_id": ["500005", "580003", "670003", "720009", "080008"],
-        "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                          "2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                          "2024-11-04 11:00:00"],
-        "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
-                        "2024-11-04 11:00:00", "2024-11-04 11:00:00",
-                        "2024-11-04 11:00:00"],
-        "track": [2, 6, 3, 1, 5]
-    }
-    assert timetable.get_Data == data
+    assert returned == ("2024-11-04 12:00:00", "2024-11-04 14:00:00", 1)
 
 
 def test_Price__init__():
-    prices = Price(570002)
+    prices = Price(500005, 1)
 
 
 def test_Price_price():
-    prices = Price(570002, dt.fromisoformat("2025-01-06"))
-    assert prices.price() == 37
+    prices = Price(500005, 1)
+    assert prices.price() == 74
