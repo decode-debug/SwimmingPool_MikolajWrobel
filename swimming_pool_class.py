@@ -4,6 +4,7 @@ from pandas import DataFrame, concat
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
+from plotter import settings_handler
 
 
 class File_menagement():
@@ -19,25 +20,25 @@ class File_menagement():
             data = json.load(json_file)
         return data[request]
 
-    def safe_to_file_list(self, file, Data, name=0):
-        with open(file, 'w') as json_file:
-            json_file.write("{")
-            json_file.write("\n")
-            json_file.write("   ")
-            if name != 0:
-                json_file.write(f'{name}:')
-                json_file.write("[")
-                json_file.write("\n")
-            for element in Data:
-                json_file.write("       ")
-                json_file.write(json.dumps(element))
-                if element != Data[-1]:
-                    json_file.write(",")
-                json_file.write("\n")
-            json_file.write("    ")
-            json_file.write("]")
-            json_file.write("\n")
-            json_file.write("}")
+    # def safe_to_file_list(self, file, Data, name=0):
+    #     with open(file, 'w') as json_file:
+    #         json_file.write("{")
+    #         json_file.write("\n")
+    #         json_file.write("   ")
+    #         if name != 0:
+    #             json_file.write(f'{name}:')
+    #             json_file.write("[")
+    #             json_file.write("\n")
+    #         for element in Data:
+    #             json_file.write("       ")
+    #             json_file.write(json.dumps(element))
+    #             if element != Data[-1]:
+    #                 json_file.write(",")
+    #             json_file.write("\n")
+    #         json_file.write("    ")
+    #         json_file.write("]")
+    #         json_file.write("\n")
+    #         json_file.write("}")
 
     def safe_to_file_dict(self, file, Data, work, name=0):
         with open(file, f'{work}') as json_file:
@@ -269,6 +270,21 @@ class TimeTable():
                                    "starting_hour", "ending_hour", "track"])
         return Table
 
+    def check_if_reservations_not_same(self, id, strating_hour,
+                                       eding_hour, track):
+        if len(self._Table[((self._Table["client's_id"] == id) &
+                            (self._Table[
+                                "starting_hour"] == strating_hour) &
+                            (self._Table[
+                                "ending_hour"] == eding_hour) &
+                            (self._Table["track"] == track))]) != 0:
+            return True
+        else:
+            return False
+
+    def Table_filtered(self, filter, row_key):
+        return self._Table[self._Table[row_key] == filter]
+
     def book(self, id, strating_hour, eding_hour, track):
         """Booking track for client"""
         number = self.new_reservation_number(id)
@@ -279,7 +295,6 @@ class TimeTable():
                              ignore_index=True)
         self._Data = self._Table.to_dict(orient='list')
         self.safe_Data_to_Reservations()
-
 
     def new_reservation_number(self, id):
         Table = self._Table[self._Table["client's_id"] == id]
@@ -353,12 +368,12 @@ class Aviability_and_prices(Swimming_pool):
         load = File_menagement()
         return load.import_from_file(file, "Week")[f'{self._weekday}']
 
-    def set_working_hours(self, new_working_hours):
+    def set_working_hours(self, weekday, new_working_hours):
         '''setting workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
         open = File_menagement()
         Day = open.import_from_file(file, "Week")
-        Day[f'{self._weekday}'] = new_working_hours
+        Day[f'{weekday}'] = new_working_hours
         open.safe_to_file_dict(file, Day, "w", '"Week"')
 
     def weekdays_(self, day):
@@ -483,8 +498,8 @@ class Price(Client):
     def import_prices(self):
         get = File_menagement()
         file = "Prices.json"
-        fees = get.import_from_file(file, "Hourly_fee")
-        discounts = get.import_from_file(file, "Discounts")
+        fees = get.import_from_file(file, "Prices")["Hourly_fee"]
+        discounts = get.import_from_file(file, "Prices")["Discounts"]
         return fees, discounts
 
     def weekdays_(self, day):
@@ -543,21 +558,24 @@ class earnings_meanagement(File_menagement):
         self._day = day
         self._income = income
         self._tax = tax
+        self._day_earnings = self.day_earnings()
         self._days_gross = 0
         self._days_tax = 0
-        self._day_earnings = self.day_earnings()
+        self.find_all_day_earnings()
+
+
 
     @property
-    def get_day_earnings(self):
-        return self._day_earnings
+    def get_earnings(self):
+        return self._earnings
 
     @property
     def get_days_gross(self):
-        return self._day_earnings
+        return self._days_gross
 
     @property
     def get_days_tax(self):
-        return self._day_earnings
+        return self._days_tax
 
     def earnings_from_file(self):
         return self.import_from_file("Made_money.json", "Money")
@@ -568,10 +586,12 @@ class earnings_meanagement(File_menagement):
             self._days_tax += self._day_earnings[key]["Tax"]
 
     def day_earnings(self):
-        self._day_earnings = {}
+        day_earnings = {}
         for key in self._earnings.keys():
-            if dt.fromisoformat(key).date() == self._day.date():
-                self._day_earnings[key] = self._earnings[key]
+            if dt.fromisoformat(key).date() == dt.fromisoformat(self._day).date():
+                day_earnings[key] = self._earnings[key]
+        return day_earnings
+
 
     def add_earnings(self):
         self._earnings[self._day] = {
@@ -583,3 +603,10 @@ class earnings_meanagement(File_menagement):
         self.add_earnings()
         self.safe_to_file_dict("Made_money.json", self._earnings,
                                "w", '"Money"')
+
+class swimming_pool_creator(settings_handler):
+    def __init__(self, choice, pool_name):
+        super().__init__(choice, pool_name)
+
+    def start_creating():
+

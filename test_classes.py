@@ -34,9 +34,6 @@ def test_Swimming_pool_class():
     assert pool
 
 
-
-
-
 def test_Swimming_pool_get_name():
     pool = Swimming_pool("Maly")
     assert pool.get_name == 'Maly'
@@ -50,9 +47,6 @@ def test_Swimming_pool_get_tracks():
 def test_Swimming_pool_load_tracks():
     pool = Swimming_pool("Maly")
     assert pool.load_tracks() == 6
-
-
-
 
 
 def test_set_tracks():
@@ -233,7 +227,7 @@ def test_TimeTable_remove_book():
     timetable.remove_booking("570002", "2024-11-04 11:00:00",
                              "2024-11-04 11:00:00", 4)
     data = {
-        "reservation_num":[1, 1, 1, 1, 1],
+        "reservation_num": [1, 1, 1, 1, 1],
         "client's_id": ["500005", "580003", "670003", "720009", "080008"],
         "starting_hour": ["2024-11-04 11:00:00", "2024-11-04 11:00:00",
                           "2024-11-04 11:00:00", "2024-11-04 11:00:00",
@@ -282,17 +276,17 @@ def test_Aviability_and_prices_get_ending_hour():
     assert available.get_ending_hour == '2024-11-04 14:00:00'
 
 
-def test_Swimming_pool_load_working_hours():
+def test_Aviability_and_prices_load_working_hours():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
     assert available.load_working_hours() == ["09:00", "20:00"]
 
 
-def test_set_working_hours():
+def test_Aviability_and_prices_set_working_hours():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
     assert available.load_working_hours() == ["09:00", "20:00"]
-    available.set_working_hours(["09:00", "20:00"])
+    available.set_working_hours("Monday", ["09:00", "20:00"])
 
 
 def test_Aviability_and_prices_find_available_track():
