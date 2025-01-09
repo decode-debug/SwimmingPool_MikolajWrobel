@@ -4,19 +4,69 @@ from pandas import DataFrame, concat
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
-from plotter import settings_handler
 
 
-class File_menagement():
-    def __init__(self):
-        pass
+class Swimming_pool:
+    def __init__(self, name):
+        """
+        defining Swimming_pool class
+        self :: str
+        name :: str
+        working_hours :: typle
+        """
+        self._pool_name = name
+        self._tracks = self.load_tracks()
+
+    @property
+    def get_name(self):
+        "returns pool name"
+        return self._pool_name
+
+    @property
+    def get_tracks(self):
+        "returns ammount of swimming tracks"
+        return self._tracks  # ??????????????
+
+    def load_tracks(self):
+        '''asking for ammount of tracks in Swimming_pool'''
+        file = "Pools.json"
+        with (open(file, 'r')) as json_file:
+            data = json.load(json_file)
+        return data["Pools"][f'{self._pool_name}']
+
+    # def set_tracks(self, new_tracks):
+    #     '''setting ammount of tracks in Swimming_pool'''
+    #     file = "Pools.json"
+    #     with (open(file, 'r')) as json_file:
+    #         data = json.load(json_file)
+    #     tracks = data["Pools"]
+    #     tracks[f'{self._name}'] = new_tracks
+    #     open.safe_to_file_dict(file, tracks, "w", '"Pools"')
+
+
+class File_menagement(Swimming_pool):
+    def __init__(self, pool_name):
+        super().__init__(pool_name)
+
+    @property
+    def get_tracks(self):
+        return super().get_tracks
+
+    def file_path(self, file):
+        if file != "passwords.json" and file != "Pools.json":
+            file_path = f"Pools/{self._pool_name}_Pool_Data/{file}"
+        else:
+            file_path = f"Pools/{file}"
+        return file_path
 
     def import_file(self, file):
-        with (open(file, 'r')) as json_file:
+        file_path = self.file_path(file)
+        with open(file_path, 'r') as json_file:
             return json.load(json_file)
 
     def import_from_file(self, file, request):
-        with (open(file, 'r')) as json_file:
+        file_path = self.file_path(file)
+        with (open(file_path, 'r')) as json_file:
             data = json.load(json_file)
         return data[request]
 
@@ -41,7 +91,8 @@ class File_menagement():
     #         json_file.write("}")
 
     def safe_to_file_dict(self, file, Data, work, name=0):
-        with open(file, f'{work}') as json_file:
+        file_path = self.file_path(file)
+        with open(file_path, f'{work}') as json_file:
             json_file.write("{")
             json_file.write("\n")
             json_file.write("   ")
@@ -65,44 +116,9 @@ class File_menagement():
             json_file.write("}")
 
 
-class Swimming_pool:
-    def __init__(self, name, tracks=1):
-        """
-        defining Swimming_pool class
-        self :: str
-        name :: str
-        working_hours :: typle
-        """
-        self._name = name
-        self._tracks = self.load_tracks()
-
-    @property
-    def get_name(self):
-        "returns pool name"
-        return self._name
-
-    @property
-    def get_tracks(self):
-        "returns ammount of swimming tracks"
-        return self._tracks  # ??????????????
-
-    def load_tracks(self):
-        '''asking for ammount of tracks in Swimming_pool'''
-        file = "Pools.json"
-        load = File_menagement()
-        return load.import_from_file(file, "Pools")[f'{self._name}']
-
-    def set_tracks(self, new_tracks):
-        '''setting ammount of tracks in Swimming_pool'''
-        file = "Pools.json"
-        open = File_menagement()
-        tracks = open.import_from_file(file, "Pools")
-        tracks[f'{self._name}'] = new_tracks
-        open.safe_to_file_dict(file, tracks, "w", '"Pools"')
-
-
-class Client:
-    def __init__(self, id):
+class Client(File_menagement):
+    def __init__(self, id, pool_name):
+        super().__init__(pool_name)
         """
         defining Client class
         self :: str
@@ -151,9 +167,8 @@ class Client:
         return self.import_client()[3]
 
     def import_client(self):
-        get = File_menagement()
         file = "Clients.json"
-        clients = get.import_from_file(file, "Clients")
+        clients = self.import_from_file(file, "Clients")
         return clients[f"{self._id}".zfill(6)]
 
     def __str__(self):
@@ -183,14 +198,14 @@ class Client:
         add.Add_client()
 
 
-class Dict_of_clients():
-    def __init__(self):
+class Dict_of_clients(File_menagement):
+    def __init__(self, pool_name):
+        super().__init__(pool_name)
         self._dict = {}
 
     @property
     def get_dict(self):
-        open = File_menagement()
-        self._dict = open.import_from_file("clients.json", "Clients")
+        self._dict = self.import_from_file("clients.json", "Clients")
         return self._dict
 
     def find_client(self, id):
@@ -200,16 +215,14 @@ class Dict_of_clients():
         return id, self._dict[f"{id}"]
 
     def Add_client(self, id, Data):
-        save = File_menagement()
         self.get_dict
         self._dict[f"{id}"] = Data
-        save.safe_to_file_dict("Clients.json", self._dict, "w", '"Clients"')
+        self.safe_to_file_dict("Clients.json", self._dict, "w", '"Clients"')
 
     def remove_client(self, id):
-        save = File_menagement()
         self.get_dict
         del self._dict[f"{id}"]
-        save.safe_to_file_dict("Clients.json", self._dict, "w", '"Clients"')
+        self.safe_to_file_dict("Clients.json", self._dict, "w", '"Clients"')
 
 
 # class Reservation:
@@ -245,9 +258,10 @@ class Tickets:
     pass
 
 
-class TimeTable():
-    def __init__(self):
+class TimeTable(File_menagement):
+    def __init__(self, pool_name):
         """stores datatable about reservations"""
+        super().__init__(pool_name)
         self._Data = self.import_Data_from_Reservations()
         self._Table = self.table()
 
@@ -260,8 +274,7 @@ class TimeTable():
         return self._Table
 
     def import_Data_from_Reservations(self):
-        get = File_menagement()
-        return get.import_from_file("Reservations.json", "Data")
+        return self.import_from_file("Reservations.json", "Data")
 
     def table(self):
         """Sorts and decrypts Data"""
@@ -317,12 +330,11 @@ class TimeTable():
 
     def safe_Data_to_Reservations(self):
         file = "Reservations.json"
-        save = File_menagement()
-        save.safe_to_file_dict(file, self._Data, "w", '"Data"')
+        self.safe_to_file_dict(file, self._Data, "w", '"Data"')
 
 
-class Aviability_and_prices(Swimming_pool):
-    def __init__(self, starting_hour, swimming_time, name, track=0):
+class Aviability_and_prices(File_menagement):
+    def __init__(self, starting_hour, swimming_time, pool_name, track=0):
         """
         defining Aviability_and_prices class
         self :: str
@@ -330,7 +342,7 @@ class Aviability_and_prices(Swimming_pool):
         ending_hour :: int
         track :: int
         """
-        super().__init__(name)
+        super().__init__(pool_name)
         # TimeTable.__init__(self)
         day = dt.fromisoformat(starting_hour).date()
         self._day = day
@@ -365,16 +377,14 @@ class Aviability_and_prices(Swimming_pool):
     def load_working_hours(self):
         '''asking for workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
-        load = File_menagement()
-        return load.import_from_file(file, "Week")[f'{self._weekday}']
+        return self.import_from_file(file, "Week")[f'{self._weekday}']
 
     def set_working_hours(self, weekday, new_working_hours):
         '''setting workinghours of Swimming_pool'''
         file = "Working_hours_weekly.json"
-        open = File_menagement()
-        Day = open.import_from_file(file, "Week")
+        Day = self.import_from_file(file, "Week")
         Day[f'{weekday}'] = new_working_hours
-        open.safe_to_file_dict(file, Day, "w", '"Week"')
+        self.safe_to_file_dict(file, Day, "w", '"Week"')
 
     def weekdays_(self, day):
         days = ["Monday", "Tuesday", "Wednesday",
@@ -415,7 +425,7 @@ class Aviability_and_prices(Swimming_pool):
             return True
 
     def risky_reservations(self, starting_hour, ending_hour):
-        get = TimeTable()
+        get = TimeTable("Maly")
         Table = get.table()
         new_Table = Table[~((Table['starting_hour'] >= ending_hour) |
                             (Table['ending_hour'] <= starting_hour))]
@@ -461,13 +471,14 @@ class Aviability_and_prices(Swimming_pool):
             if type(self.find_available_track(Hazards)) is int:
                 track = self.find_available_track(Hazards)
                 break
-            starting_hour, ending_hour = self.potential_reser_hour(starting_hour, ending_hour)
+            starting_hour, ending_hour = self.potential_reser_hour(
+                                        starting_hour, ending_hour)
         return starting_hour, ending_hour, track
 
 
 class Price(Client):
-    def __init__(self, id, res_numer):
-        super().__init__(id)
+    def __init__(self, id, res_numer, pool_name):
+        super().__init__(id, pool_name)
 
         self._res_numer = res_numer
 
@@ -496,10 +507,9 @@ class Price(Client):
         return self._clients_age_type
 
     def import_prices(self):
-        get = File_menagement()
         file = "Prices.json"
-        fees = get.import_from_file(file, "Prices")["Hourly_fee"]
-        discounts = get.import_from_file(file, "Prices")["Discounts"]
+        fees = self.import_from_file(file, "Prices")["Hourly_fee"]
+        discounts = self.import_from_file(file, "Prices")["Discounts"]
         return fees, discounts
 
     def weekdays_(self, day):
@@ -513,8 +523,8 @@ class Price(Client):
     def client_age(self):
         return dt.today().date() - date.fromisoformat(self._birthday)
 
-    def swimming_time():
-        get = TimeTable()
+    def swimming_time(self):
+        get = TimeTable(self._pool_name)
         get.get_Table
 
     def clients_age_type(self):
@@ -527,7 +537,7 @@ class Price(Client):
             return "Kid_up_to_3"
 
     def find_reservation(self):
-        get = TimeTable()
+        get = TimeTable(self._pool_name)
         Table = get.get_Table
         row = Table[(Table["reservation_num"] == self._res_numer) &
                     (Table["client's_id"] == str(self._id))]
@@ -552,8 +562,8 @@ class Price(Client):
 
 
 class earnings_meanagement(File_menagement):
-    def __init__(self, day: dt, income: int = 0, tax: int = 0):
-        super().__init__()
+    def __init__(self, day: dt,pool_name,  income: int = 0, tax: int = 0):
+        super().__init__(pool_name)
         self._earnings = self.earnings_from_file()
         self._day = day
         self._income = income
@@ -562,8 +572,6 @@ class earnings_meanagement(File_menagement):
         self._days_gross = 0
         self._days_tax = 0
         self.find_all_day_earnings()
-
-
 
     @property
     def get_earnings(self):
@@ -592,7 +600,6 @@ class earnings_meanagement(File_menagement):
                 day_earnings[key] = self._earnings[key]
         return day_earnings
 
-
     def add_earnings(self):
         self._earnings[self._day] = {
                 "Gross imcome": self._income,
@@ -603,10 +610,3 @@ class earnings_meanagement(File_menagement):
         self.add_earnings()
         self.safe_to_file_dict("Made_money.json", self._earnings,
                                "w", '"Money"')
-
-class swimming_pool_creator(settings_handler):
-    def __init__(self, choice, pool_name):
-        super().__init__(choice, pool_name)
-
-    def start_creating():
-

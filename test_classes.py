@@ -7,7 +7,7 @@ from datetime import date as dt
 
 
 def test_File_menagement_import_file():
-    menage = File_menagement()
+    menage = File_menagement("Maly")
     data = {
             "Pools": {
                 "Maly": 6,
@@ -18,13 +18,13 @@ def test_File_menagement_import_file():
 
 
 def test_File_menagement_import__from_file():
-    menage = File_menagement()
+    menage = File_menagement("Maly")
     data = {"Maly": 6, "Obrotny": 8}
     assert menage.import_from_file("Pools.json", "Pools") == data
 
 
 def test_File_menagement_save_to_file_dict():
-    menage = File_menagement()
+    menage = File_menagement("Maly")
     Data = menage.import_from_file("Working_hours_weekly.json", "Week")
     menage.safe_to_file_dict("Working_hours_weekly.json", Data, "w", '"Week"')
 
@@ -49,79 +49,79 @@ def test_Swimming_pool_load_tracks():
     assert pool.load_tracks() == 6
 
 
-def test_set_tracks():
-    pool = Swimming_pool("Maly")
-    assert pool.load_tracks() == 6
-    pool.set_tracks(8)
+# def test_set_tracks():
+#     pool = Swimming_pool("Maly")
+#     assert pool.load_tracks() == 6
+#     pool.set_tracks(8)
 
 
-def test_set_tracks_revarse():
-    pool = Swimming_pool("Maly")
-    assert pool.load_tracks() == 8
-    pool.set_tracks(6)
+# def test_set_tracks_revarse():
+#     pool = Swimming_pool("Maly")
+#     assert pool.load_tracks() == 8
+#     pool.set_tracks(6)
 
 
 def test_Client_as_customer():
-    client = Client(570002)
+    client = Client(570002, "Maly")
     assert client
 
 
 def test_Client_as_group():
-    client = Client(80008)
+    client = Client(80008, "Maly")
     assert client
 
 
 def test_Client_maturity_group():
-    client = Client(80008)
+    client = Client(80008, "Maly")
     assert client.get_maturity == 5
 
 
 def test_Client_class_or_cust_group():
-    client = Client(80008)
+    client = Client(80008, "Maly")
     assert client.get_class_or_cust == 1
 
 
 def test_Client_group_size_group():
-    client = Client(80008)
+    client = Client(80008, "Maly")
     assert client.get_group_size == 10
 
 
 def test_Client_name():
-    client = Client(570002)
+    client = Client(570002, "Maly")
     assert client.get_name == "Ala Makota"
 
 
 def test_Client_maturity_as_customer():
-    client = Client(570002)
+    client = Client(570002, "Maly")
     assert client.get_maturity == 0
 
 
 def test_Client_class_or_cust_as_customer():
-    client = Client(570002)
+    client = Client(570002, "Maly")
     assert client.get_class_or_cust == 0
 
 
 def test_Client_group_size_as_customer():
-    client = Client(570002)
+    client = Client(570002, "Maly")
     assert client.get_group_size == 1
 
 
 def test_Client__str__immature_client():
-    client = Client(570002)
+    client = Client(570002, "Maly")
     string = str(client)
     sentance = "Klient/tka Ala Makota nie jest dorosły/a. "
     assert string == f'Ala Makota jest kleintem/ką. {sentance}'
 
 
 def test_Client__str__mature_client():
-    client = Client(500005)
+    client = Client(500005, "Maly")
     string = str(client)
     sentance = "Klient/tka Alice Police jest dorosły/a. "
     assert string == f'Alice Police jest kleintem/ką. {sentance}'
 
 
 def test_Client__str__swimmingclass():
-    client = Client(80008)
+    client = Client(80008, "Maly")
     string = str(client)
     sentance = "Szkółka Pletewka ma 5 dorosłych pływaków/czek."
     sentance2 = " W szkółce Pletewka pływa dziś 10 pływaków/czek."
@@ -133,7 +133,7 @@ def test_Client_client_from_file():
 
 
 def test_Dict_of_clients_get_dict():
-    get = Dict_of_clients()
+    get = Dict_of_clients("Maly")
     Data = {
        "570002": ["Ala Makota", "2010-12-09", 0, 0, 1],
        "500005": ["Alice Police", "1989-07-09", 1, 0, 1],
@@ -147,23 +147,23 @@ def test_Dict_of_clients_get_dict():
 
 
 def test_Dict_of_clients_find_client():
-    find = Dict_of_clients()
+    find = Dict_of_clients("Maly")
     assert find.find_client(570013) == (570013, ['Ania Mapsa',
                                                  "2024-09-07", 0, 0, 1])
 
 
 def test_Dict_of_clients_Add_client():
-    add = Dict_of_clients()
+    add = Dict_of_clients("Maly")
     add.Add_client(570024, ["Ani Mal", 0, 0, 1])
 
 
 def test_Dict_of_clients_remove_client():
-    add = Dict_of_clients()
+    add = Dict_of_clients("Maly")
     add.remove_client(570024)
 
 
 def test_Timetable_get_Data():
-    timetable = TimeTable()
+    timetable = TimeTable("Maly")
     timetable.table()
     data = {
         "reservation_num": [1, 1, 1, 1, 1],
@@ -180,10 +180,10 @@ def test_Timetable_get_Data():
 
 
 def test_TimeTable_table():
-    timetable = TimeTable()
+    timetable = TimeTable("Maly")
 
     def import_Data_from_Reservations():
-        get = File_menagement()
+        get = File_menagement("Maly")
         return get.import_from_file("Reservations.json", "Data")
 
     def table():
@@ -202,7 +202,7 @@ def test_TimeTable_table():
 
 
 def test_TimeTable_book():
-    timetable = TimeTable()
+    timetable = TimeTable("Maly")
     timetable.table()
     timetable.book("570002", "2024-11-04 11:00:00",
                    "2024-11-04 11:00:00", 4)
@@ -222,7 +222,7 @@ def test_TimeTable_book():
 
 
 def test_TimeTable_remove_book():
-    timetable = TimeTable()
+    timetable = TimeTable("Maly")
     timetable.table()
     timetable.remove_booking("570002", "2024-11-04 11:00:00",
                              "2024-11-04 11:00:00", 4)
@@ -382,9 +382,9 @@ def test_Aviability_and_prices_suggest_resevation():
 
 
 def test_Price__init__():
-    prices = Price(500005, 1)
+    prices = Price(500005, 1, "Maly")
 
 
 def test_Price_price():
-    prices = Price(500005, 1)
+    prices = Price(500005, 1, "Maly")
     assert prices.price() == 7500

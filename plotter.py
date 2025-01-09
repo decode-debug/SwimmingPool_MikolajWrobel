@@ -17,7 +17,7 @@ class change_prices():
 
 class Reservation_suggestion_handler(TimeTable):
     def __init__(self, reserved_from, reserved_time, pool_name, track, id):
-        super().__init__()
+        super().__init__(pool_name)
         self._reserved_from = reserved_from
         self._reserved_time = reserved_time
         self._pool_name = pool_name
@@ -60,7 +60,7 @@ class Reservation_suggestion_handler(TimeTable):
         yes_no = Get_from_keyboard()
         answer = yes_no.yes_no()
         if answer == "Tak":
-            removebook = TimeTable()
+            removebook = TimeTable(self._pool_name)
             removebook.remove_booking(self._id, self._sugg_starting,
                                       self._sugg_ending, self._track)
         print(f"{Fore.CYAN}", end="")
@@ -72,13 +72,14 @@ class Reservation_suggestion_handler(TimeTable):
 
 
 class Payment_handler(Get_from_keyboard, TimeTable):
-    def __init__(self):
-        super(Get_from_keyboard, self).__init__()
-        super(TimeTable, self).__init__()
+    def __init__(self, pool_name):
+        super(Get_from_keyboard, self).__init__(pool_name)
+        super(TimeTable, self).__init__(pool_name)
+        self._pool_name = pool_name
 
     def get_single_payment(self, id, resevation):
         """It can not be parted since I can pay fro more thean one swimming"""
-        bill = Price(id, resevation)
+        bill = Price(id, resevation, self._pool_name)
         price = bill.get_price
         swimming_time = bill.get_swimming_time
         age_type = bill.get_clients_age_type
@@ -153,7 +154,8 @@ class Payment_handler(Get_from_keyboard, TimeTable):
             return False
 
     def save_earned_money(self):
-        save = earnings_meanagement(self._datetime, self._total_price, self._tax)
+        save = earnings_meanagement(self._datetime, self._pool_name,
+                                    self._total_price, self._tax)
         if self.assert_paynment() is True:
             save.save_new_eranings()
 
@@ -168,18 +170,19 @@ class Payment_handler(Get_from_keyboard, TimeTable):
 
 
 class Finance_raport_handler(Get_from_keyboard):
-    def __init__(self):
+    def __init__(self, pool_name):
         super().__init__()
         self._day = self.import_days_earnigs()
+        self._pool_name = pool_name
 
     def import_days_earnigs(self):
         return self.import_day()
 
-    def print_day(self, pool_name):
-        print(f'W dniu: {self._day}. Basen "{pool_name}" zarorobił:')
+    def print_day(self):
+        print(f'W dniu: {self._day}. Basen "{self._pool_name}" zarorobił:')
 
     def print_all_day_transactions(self):
-        money = earnings_meanagement(self._day)
+        money = earnings_meanagement(self._day, self._pool_name)
         earnings = money.get_earnings
         ii = 0
         for earning in earnings:
@@ -191,18 +194,18 @@ class Finance_raport_handler(Get_from_keyboard):
             print(f" Netto: {(gross - tax)//100:>5}.{(gross - tax)%100:2}")
 
     def print_all_day_income(self):
-        money = earnings_meanagement(self._day)
+        money = earnings_meanagement(self._day, self._pool_name)
         gross = money.get_days_gross
         tax = money.get_days_tax
         print(f"Zarobki z całego dnia Brutto: {gross//100:>5}.", end='')
         print(f"{gross%100:2} Podatek: {tax//100:>5}.{tax%100:2}", end='')
         print(f" Netto: {(gross - tax)//100:>5}.{(gross - tax)%100:2}")
 
-    def print_report(self, pool_name):
+    def print_report(self):
         string = "----------------------------"
         print(f'--------------------------------------------{string}')
         print(f'--------------------------------------------{string}')
-        self.print_day(pool_name)
+        self.print_day()
         print(f'--------------------------------------------{string}')
         self.print_all_day_transactions()
         print(f'--------------------------------------------{string}')
@@ -210,15 +213,14 @@ class Finance_raport_handler(Get_from_keyboard):
         print(f'--------------------------------------------{string}')
         print(f'--------------------------------------------{string}')
 
-    def report(self, pool_name):
-        self.print_report(pool_name)
+    def report(self):
+        self.print_report()
 
 
 class settings_handler(Get_from_keyboard, File_menagement):
-    def __init__(self, choice, pool_name):
-        super(Get_from_keyboard, self).__init__()
-        super(File_menagement, self).__init__()
-        self._choice = choice
+    def __init__(self, pool_name):
+        super(Get_from_keyboard, self).__init__(pool_name)
+        super(File_menagement, self).__init__(pool_name)
         self._pool_name = pool_name
 
     def change_working_hours(self):
@@ -262,21 +264,29 @@ class settings_handler(Get_from_keyboard, File_menagement):
         self.safe_to_file_dict("Pools.json", all_tracks,
                                "w", '"Pools"')
 
-    def add_new_swimming_pool():
-
-
-
     def change(self):
-        if self._choice == "Zmień godziny pracy":
+        choice = self.choose_settings()
+        if choice == "Zmień godziny pracy":
             self.change_working_hours()
-        elif self._choice == "Zmień hasło":
+        elif choice == "Zmień hasło":
             self.change_password()
-        elif self._choice == "Zmień przeceny":
+        elif choice == "Zmień przeceny":
             self.change_discounts()
-        elif self._choice == "Zmień opłatę godzinową":
+        elif choice == "Zmień opłatę godzinową":
             self.change_hourly_payment()
-        elif self._choice == "Zmień liczbę torów":
+        elif choice == "Zmień liczbę torów":
             self.change_tracks()
+        elif choice == "Stwórz nowy basen":
+            pool_name = self.import_pool()
+            swimming_pool_creator(pool_name)
+
+
+class swimming_pool_creator(settings_handler):
+    def __init__(self, pool_name):
+        super().__init__(pool_name)
+
+    def start_creating():
+        pass
 
 
 class decision_handlers(Get_from_keyboard):
@@ -297,18 +307,17 @@ class decision_handlers(Get_from_keyboard):
         suggest.reservation_suggestion()
 
     def payment_handler(self):
-        pay = Payment_handler()
+        pay = Payment_handler(self._pool_name)
         pay.print_bill()
 
     def finance_raport(self):
-        report = Finance_raport_handler()
-        report.report(self._pool_name)
+        report = Finance_raport_handler(self._pool_name)
+        report.report()
 
     def settings(self):
-        choice = self.choose_settings()
-        set = settings_handler(choice, self._pool_name)
-        set.change()
 
+        set = settings_handler(self._pool_name)
+        set.change()
 
     def seperate_next_task(self):
         print("\n\n\n\n")

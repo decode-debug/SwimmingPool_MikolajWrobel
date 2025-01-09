@@ -152,7 +152,7 @@ class Get_from_keyboard():
         pass
 
     def get_password(self, pool_name):
-        get = File_menagement()
+        get = File_menagement(pool_name)
         password = maskpass.advpass()
         if password != get.import_from_file("passwords.json",
                                             "passwords")[pool_name]:
@@ -187,7 +187,7 @@ class Get_from_keyboard():
         return prompt(questions)["data"]
 
     def import_pool(self):
-        get = File_menagement()
+        get = File_menagement("Maly")
         pools = get.import_from_file("Pools.json", 'Pools').keys()
         not_found = f'Basen nie istnieje, wpisz jeden z {pools}'
 
@@ -305,7 +305,7 @@ class Get_from_keyboard():
             'message': 'Wybierz opcję:',
             'choices': ["Zmień godziny pracy", "Zmień hasło",
                         "Zmień przeceny", "Zmień opłatę godzinową",
-                        "Zmień liczbę torów"],
+                        "Zmień liczbę torów", "Stwórz nowy basen"],
         }]
         answers = prompt(questions)
         print(f"Wybrałeś: {answers['choice']}")
