@@ -8,11 +8,14 @@ from colorama import Fore, Back, Style, init
 # instead of InquirerPy in case of you using python 3.9 (Better looking)
 from datetime import date
 import math
+import json
 # flake8:
 
 
-class change_prices():
-    pass
+def get_pools():
+    file_path = "Pools/Pools.json"
+    with open(file_path, 'r') as json_file:
+        return json.load(json_file)["Pools"].keys()
 
 
 class Reservation_suggestion_handler(TimeTable):
@@ -277,16 +280,47 @@ class settings_handler(Get_from_keyboard, File_menagement):
         elif choice == "Zmień liczbę torów":
             self.change_tracks()
         elif choice == "Stwórz nowy basen":
-            pool_name = self.import_pool()
-            swimming_pool_creator(pool_name)
+            pool_name = self.import_new_pool()
+            create = swimming_pool_creator(pool_name)
+            create.start_creating()
 
 
-class swimming_pool_creator(settings_handler):
+class swimming_pool_creator(Get_from_keyboard):
     def __init__(self, pool_name):
-        super().__init__(pool_name)
+        super().__init__()
+        self._pool_name = pool_name
 
-    def start_creating():
-        pass
+    def open_file(self, file):
+        file = open(file, "r")
+        data = json.load(file)
+        file.close()
+        return data
+
+    def pools_and_passwords(self):
+        pool_data = self.open_file("Pools/Pools.json")
+        passwords_data = self.open_file("Pools/passwords.json")
+        return pool_data, passwords_data
+
+    def set_pool_tracks(self, pools):
+        pools[self._pool_name] = self.import_tracks()
+        return pools
+
+    def set_password(self, passwords):
+        passwords[self._pool_name] = self.import_password()
+        return passwords
+
+    def create_new_folder(self):
+        Clients_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Pools.json")
+        Money_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Made_money.json")
+        Reservations_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Reservations.json")
+        Prices_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Prices.json")
+        Working_hours_weekly_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Working_hours_weekly.json")
+        return Clients_data, Money_data, Reservations_data, Prices_data, Working_hours_weekly_data
+
+    def start_creating(self):
+        pools, passwords = self.pools_and_passwords()
+        pools = self.set_pool_tracks(pools)
+        passwords = self.set_password(passwords)
 
 
 class decision_handlers(Get_from_keyboard):
@@ -328,22 +362,28 @@ def bootapp():
 
 
 def run_in_terminal():
+    pools = get_pools()
     get = Get_from_keyboard()
-    pool_name = get.import_pool()
-    decision = decision_handlers(pool_name)
-    get.get_password(pool_name)
-    terminal = choose_whats_next()
-    while terminal != "Zamknięcie programu":
-        if terminal == "Rezerwacja":
-            decision.reservation_handler()
-        elif terminal == "Płatność":
-            decision.payment_handler()
-        elif terminal == "Raport Finansowy":
-            decision.finance_raport()
-        elif terminal == "Ustawienia":
-            decision.settings()
-        decision.seperate_next_task()
+    if len(pools) != 0:
+        pool_name = get.import_pool(pools)
+        decision = decision_handlers(pool_name)
+        get.get_password(pool_name)
         terminal = choose_whats_next()
+        while terminal != "Zamknięcie programu":
+            if terminal == "Rezerwacja":
+                decision.reservation_handler()
+            elif terminal == "Płatność":
+                decision.payment_handler()
+            elif terminal == "Raport Finansowy":
+                decision.finance_raport()
+            elif terminal == "Ustawienia":
+                decision.settings()
+            decision.seperate_next_task()
+            terminal = choose_whats_next()
+    else:
+        pool_name = get.import_new_pool()
+        create = swimming_pool_creator(pool_name)
+        create.start_creating()
 
 
 def main():

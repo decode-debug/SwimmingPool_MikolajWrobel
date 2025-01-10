@@ -29,7 +29,7 @@ class Swimming_pool:
 
     def load_tracks(self):
         '''asking for ammount of tracks in Swimming_pool'''
-        file = "Pools.json"
+        file = "Pools/Pools.json"
         with (open(file, 'r')) as json_file:
             data = json.load(json_file)
         return data["Pools"][f'{self._pool_name}']

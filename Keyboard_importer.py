@@ -186,17 +186,23 @@ class Get_from_keyboard():
         }]
         return prompt(questions)["data"]
 
-    def import_pool(self):
-        get = File_menagement("Maly")
-        pools = get.import_from_file("Pools.json", 'Pools').keys()
+    def import_pool(self, pools=0):
         not_found = f'Basen nie istnieje, wpisz jeden z {pools}'
-
         questions = [{
                 'type': 'input',
                 'name': 'data',
                 'message': 'Podaj nazwę basenu:',
                 'validate': lambda pool: True if pool in pools
                 else f'{not_found}'
+            }]
+        ans = prompt(questions[0])
+        return ans["data"]
+
+    def import_new_pool(self):
+        questions = [{
+                'type': 'input',
+                'name': 'data',
+                'message': 'Podaj nazwę basenu:'
             }]
         ans = prompt(questions[0])
         return ans["data"]
@@ -255,7 +261,7 @@ class Get_from_keyboard():
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': f"Na jakim torze {request}{request_ending}:",
+            'message': f"Na jakim torze {request}{request_ending}{request_ending2}:",
             'validate': lambda track: True if 0 <= int(track) <= tracks
             else f"Podaj poprawnie tor jako liczbę z przedziału [0,{tracks}]"
         }]
