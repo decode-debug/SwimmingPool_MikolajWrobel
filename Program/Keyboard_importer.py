@@ -4,7 +4,6 @@ from swimming_pool_class import File_menagement, Dict_of_clients, Swimming_pool
 import json
 import maskpass
 from datetime import time
-from datetime import datetime as dt
 
 
 class Create_client():
@@ -69,7 +68,7 @@ class Create_client():
             wrong = "Źle podałeś/aś wartość - podaj liczbę całkowitą od 0 do 1"
         elif self._group_size > 1:
             maturity = "Podaj liczbę dorosłych pływaków: "
-            wrong = f"Źle podałeś/aś wartość - podaj liczbę całkowitą od 0 do {self._group_size}"
+            wrong = f" - podaj liczbę całkowitą od 0 do {self._group_size}"
 
         question = [{
             'type': 'input',
@@ -78,7 +77,7 @@ class Create_client():
             'validate': lambda mature: True
             if (self._group_size == 1) and (mature == '1' or mature == '0') or
             (self._group_size > 1) and (int(mature) <= self._group_size)
-            else f"{wrong}"
+            else f"Źle podałeś/aś wartość{wrong}"
         }]
         self._maturity = int(prompt(question)['mature'])
 
@@ -96,7 +95,8 @@ class Create_client():
             data = json.load(json_file)
         other_clients = data["Clients"]
         other_nums = other_clients.keys()
-        danger_nums = [num for num in other_nums if number <= int(num) <= (number+9999)]
+        danger_nums = [num for num in other_nums
+                       if number <= int(num) <= (number+9999)]
         for ii in range(0, len(danger_nums)):
             danger_nums[ii] = int((int(danger_nums[ii])/10))
         id = number
@@ -239,12 +239,12 @@ class Get_from_keyboard():
 
     def import_swimming_start(self):
         request = 'Podaj datę i godzinę wejścia do basenu, '
-        request_ending = "proszoną przez klienta w formacie RRRR-MM-DD 00-00-00"
+        request_ending = "proszoną przez klienta w formacie "
         incorrect = 'RRRR-MM-DD 00:00:00 np. 2077-07-07 07:07:07'
         questions = [{
                 'type': 'input',
                 'name': 'data',
-                'message': f'{request}{request_ending}:',
+                'message': f'{request}{request_ending}RRRR-MM-DD 00-00-00:',
                 'validate': lambda date: True if
                 re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', date)
                 else f'Podaj datę w formacie iso {incorrect}'
@@ -254,10 +254,11 @@ class Get_from_keyboard():
 
     def import_swimming_time(self):
         incorrect = 'np. 03:30 oznacza 3 godziny i 30 min'
+        string = "(podaj w formacie HH:MM)"
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': "Jak długo klient zamierza pływać(podaj w formacie HH:MM):",
+            'message': f"Jak długo klient zamierza pływać{string}:",
             'validate': lambda id: True if
             re.match(r'^\d{2}:\d{2}$', id) and
             (time().fromisoformat(id) >= time.fromisoformat("01:00"))
@@ -268,14 +269,13 @@ class Get_from_keyboard():
 
     def import_track(self, pool_name):
         request = "klient zamierza pływać(podaj liczbę z przedziału [1,"
-        request_ending = ''
         if pool_name != '':
             tracks = self.get_tracks(pool_name)
-            request_ending2 = f"{tracks}], jeśli klientowi wszystko jedno wpisz 0)"
+            request_ending2 = f"{tracks}], jeśli klientowi wszystko jedno "
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': f"Na jakim torze {request}{request_ending}{request_ending2}:",
+            'message': f"Na jakim torze {request}{request_ending2}wpisz 0):",
             'validate': lambda track: True if 0 <= int(track) <= tracks
             else f"Podaj poprawnie tor jako liczbę z przedziału [0,{tracks}]"
         }]
@@ -400,20 +400,20 @@ class Get_from_keyboard():
             "Sunday": "Niedziela"
         }
         day = days[eng_day]
-        string = "(Jeśli basen w tym dniu jest zamknięty wpisz 0)"
+        stri = "(Jeśli basen w tym dniu jest zamknięty wpisz 0)"
         incorrect = ' np. 2077-07-07 07:07:07'
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': f"Podaj godzinę otwarcia basenu w dniu {day} {string}:",
+            'message': f"Podaj godzinę otwarcia basenu w dniu {day} {stri}:",
             'validate': lambda hour: True if
             re.match(r'^\d{2}:\d{2}$', hour) or hour == "0"
             else f'Podaj datę w formacie iso RRRR-MM-DD{incorrect} lub wpisz 0'
         },
-        {
+         {
             'type': 'input',
             'name': 'data',
-            'message': f"Podaj godziny zamknięcia basenu w dniu {day} {string}:",
+            'message': f"Podaj godziny zamknięcia basenu w dniu {day} {stri}:",
             'validate': lambda hour: True if
             re.match(r'^\d{2}:\d{2}$', hour)
             else f'Podaj datę w formacie iso RRRR-MM-DD{incorrect} lub wpisz 0'

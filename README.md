@@ -86,8 +86,8 @@ Program asks for user input in this way:
 ```
 
 ## Note:
-This program has unresolved problem with PyInquirer == 1.0.3, which is nonly supported to python 3.9,
-it can be replaced with InquirerPy (for newer versions of python), but then it will no loger validate inputs.
+This program has unresolved problem with PyInquirer == 1.0.3, which is  supported up to python 3.9, due to using "mapping".
+Though it can be replaced with InquirerPy (for newer versions of python), it will no loger properly validate inputs.
 
 
 ## For Mac users

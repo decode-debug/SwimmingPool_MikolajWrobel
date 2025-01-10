@@ -3,7 +3,7 @@ from Keyboard_importer import Create_client, Get_from_keyboard
 from Keyboard_importer import choose_whats_next
 from swimming_pool_class import TimeTable, Price, earnings_meanagement
 from datetime import datetime as dt
-from colorama import Fore, Back, Style, init
+from colorama import Fore, Style
 import os
 # from InquirerPy import prompt # this library is uggested
 # instead of InquirerPy in case of you using python 3.9 (Better looking)
@@ -130,7 +130,8 @@ class Payment_handler(Get_from_keyboard, TimeTable):
 
     def print_billing_data(self, reservation, position):
         age = self.age_type_pol(reservation[0][2])
-        print(f'{position:3}. Wiek: {age}, Czas: {reservation[0][1]:5}', end='')
+        time = f"Czas: {reservation[0][1]:5}"
+        print(f'{position:3}. Wiek: {age}, {time}', end='')
         print(f', Cena:{reservation[0][0]//100:3}.{reservation[0][0]%100:2}')
 
     def print_payments(self):
@@ -166,8 +167,9 @@ class Payment_handler(Get_from_keyboard, TimeTable):
     def print_bill(self):
         self.print_payments()
         self.tax()
+        total_price = self._total_price
         print('--------------------------------------------')
-        print(f'Płatność: {self._total_price//100:>31}.{self._total_price%100:2}')
+        print(f'Płatność: {total_price//100:>31}.{total_price%100:2}')
         print(f'Podatek: {self._tax//100:>32}.{self._tax%100:2}')
         print('--------------------------------------------')
         self.save_earned_money()
@@ -291,7 +293,6 @@ class settings_handler(Get_from_keyboard, File_menagement):
             pool_name = self.import_new_pool()
             create = swimming_pool_creator(pool_name)
             create.start_creating()
-
 
 
 class swimming_pool_creator(Get_from_keyboard):
