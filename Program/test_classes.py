@@ -1,9 +1,8 @@
-from swimming_pool_class import Swimming_pool, Client
-from swimming_pool_class import Dict_of_clients, Price
-from swimming_pool_class import Aviability_and_prices, TimeTable
-from swimming_pool_class import File_menagement
+from Program.swimming_pool_class import Swimming_pool, Client
+from Program.swimming_pool_class import Dict_of_clients, Price
+from Program.swimming_pool_class import Aviability_and_prices, TimeTable
+from Program.swimming_pool_class import File_menagement
 from pandas import DataFrame
-from datetime import date as dt
 
 
 def test_File_menagement_import_file():
