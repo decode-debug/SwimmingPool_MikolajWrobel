@@ -2,6 +2,7 @@
 ## Project:
 
 ## File structure:
+```
 SwimmingPool_MikolajWrobel/
 │
 ├── Pools/
@@ -27,6 +28,7 @@ SwimmingPool_MikolajWrobel/
 ├── README.md
 ├── requirements.txt
 └── To_do.txt
+```
 
 ## Introduction
 This project aims to make a program that will speed up the billing process. Program must be easy to use, reliable and reponsive (if needed, reporting human error, so user could correct it).
