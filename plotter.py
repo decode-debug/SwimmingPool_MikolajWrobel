@@ -296,6 +296,30 @@ class swimming_pool_creator(Get_from_keyboard):
         file.close()
         return data
 
+    def save_to_file(self, path, Data, name=0):
+        with open(path, 'w') as json_file:
+            json_file.write("{")
+            json_file.write("\n")
+            json_file.write("   ")
+            if name != 0:
+                json_file.write(f'{name}:')
+                json_file.write("{")
+                json_file.write("\n")
+            iter = 1
+            for element in Data:
+                json_file.write("       ")
+                json_file.write(json.dumps(element))
+                json_file.write(":")
+                json_file.write(json.dumps(Data[element]))
+                if iter < len(Data):
+                    iter += 1
+                    json_file.write(",")
+                json_file.write("\n")
+            json_file.write("    ")
+            json_file.write("}")
+            json_file.write("\n")
+            json_file.write("}")
+
     def pools_and_passwords(self):
         pool_data = self.open_file("Pools/Pools.json")
         passwords_data = self.open_file("Pools/passwords.json")
@@ -319,8 +343,10 @@ class swimming_pool_creator(Get_from_keyboard):
 
     def start_creating(self):
         pools, passwords = self.pools_and_passwords()
-        pools = self.set_pool_tracks(pools)
-        passwords = self.set_password(passwords)
+        pools["Pools"] = self.set_pool_tracks(pools["Pools"])
+        passwords["passwords"] = self.set_password(passwords["passwords"])
+        self.save_to_file("Pools/Pools.json", pools)
+        self.save_to_file("Pools/passwords.json", passwords)
 
 
 class decision_handlers(Get_from_keyboard):
