@@ -1,6 +1,5 @@
 1) Add reaction to user not knowing his reservation number
 2) Add reaction to not existing file
-3) Add finding file in folder back
 4) add argparse
 5) Make test for correctness of clents id
 6) add swimming pool cerator

@@ -4,6 +4,7 @@ from Keyboard_importer import choose_whats_next
 from swimming_pool_class import TimeTable, Price, earnings_meanagement
 from datetime import datetime as dt
 from colorama import Fore, Back, Style, init
+import os
 # from InquirerPy import prompt # this library is uggested
 # instead of InquirerPy in case of you using python 3.9 (Better looking)
 from datetime import date
@@ -88,10 +89,10 @@ class Payment_handler(Get_from_keyboard, TimeTable):
         age_type = bill.get_clients_age_type
         return price, swimming_time, age_type
 
-    def import_res(self):
+    def import_res(self, id):
         res = self.import_res_data()
         while res == "Nie":
-            Table = self.Table_filtered(id, "client's_id")
+            Table = self.Table_filtered(str(id), "client's_id")
             if len(Table) != 0:
                 print(Table)
             else:
@@ -103,11 +104,11 @@ class Payment_handler(Get_from_keyboard, TimeTable):
         data = []
         id = int(self.import_id())
         while id != 0:
-            res = self.import_res()
+            res = self.import_res(id)
             while res != 0:
                 one_payment = self.get_single_payment(id, res), id, res
                 data.append(one_payment)
-                res = self.import_res()
+                res = self.import_res(id)
             id = int(self.import_id())
             res = int(res)
         return data
@@ -228,13 +229,20 @@ class settings_handler(Get_from_keyboard, File_menagement):
 
     def change_working_hours(self):
         """Fix"""
-        weekday = self.import_week_day()
         working_hours = self.import_from_file("Working_hours_weekly.json",
                                               "Week")
-        new_hours = self.import_working_hours(weekday)
-        working_hours[weekday] = new_hours
+        for day in working_hours:
+            new_hours = self.import_working_hours(day)
+            working_hours[day] = new_hours
         self.safe_to_file_dict("Working_hours_weekly.json",
                                working_hours, "w", '"Week"')
+        # weekday = self.import_week_day()
+        # working_hours = self.import_from_file("Working_hours_weekly.json",
+        #                                       "Week")
+        # new_hours = self.import_working_hours(weekday)
+        # working_hours[weekday] = new_hours
+        # self.safe_to_file_dict("Working_hours_weekly.json",
+        #                        working_hours, "w", '"Week"')
 
     def change_password(self):
         passwords = self.import_from_file("passwords.json", "passwords")
@@ -285,10 +293,12 @@ class settings_handler(Get_from_keyboard, File_menagement):
             create.start_creating()
 
 
+
 class swimming_pool_creator(Get_from_keyboard):
     def __init__(self, pool_name):
         super().__init__()
         self._pool_name = pool_name
+        self._directory_name = f"Pools/{self._pool_name}_Pool_Data"
 
     def open_file(self, file):
         file = open(file, "r")
@@ -296,7 +306,7 @@ class swimming_pool_creator(Get_from_keyboard):
         file.close()
         return data
 
-    def save_to_file(self, path, Data, name=0):
+    def save_to_file(self, path, Data, name):
         with open(path, 'w') as json_file:
             json_file.write("{")
             json_file.write("\n")
@@ -326,27 +336,85 @@ class swimming_pool_creator(Get_from_keyboard):
         return pool_data, passwords_data
 
     def set_pool_tracks(self, pools):
-        pools[self._pool_name] = self.import_tracks()
+        pools[self._pool_name] = int(self.import_tracks())
         return pools
 
     def set_password(self, passwords):
         passwords[self._pool_name] = self.import_password()
         return passwords
 
+    def create_new_file(self, file_name, Data, request):
+        file_path = os.path.join(self._directory_name, file_name)
+        self.save_to_file(file_path, Data, request)
+
+    def create_new_directory(self):
+        os.makedirs(self._directory_name, exist_ok=True)
+
+    def create_prices_json(self):
+        data = {
+                    "Hourly_fee": {
+                        "Adult": 0,
+                        "Kid_up_to_12": 0,
+                        "Kid_up_to_3": 0
+                    },
+                    "Discounts": {
+                        "Monday": 0,
+                        "Tuesday": 0,
+                        "Wednesday": 0,
+                        "Thrusday": 0,
+                        "Friday": 0,
+                        "Saturday": 0,
+                        "Sunday": 0
+                    }
+                }
+        self.create_new_file("Prices.json", data, '"Prices"')
+
+    def create_Working_hours_weekly_json(self):
+        data = {
+            "Monday": [],
+            "Tuesday": [],
+            "Wednesday": [],
+            "Thursday": [],
+            "Friday": [],
+            "Saturday": [],
+            "Sunday": []
+        }
+        self.create_new_file("Working_hours_weekly.json", data, '"Week"')
+
+    def create_reservations_json(self):
+        data = {
+            "reservation_num": [],
+            "client's_id": [],
+            "starting_hour": [],
+            "ending_hour": [],
+            "track": []
+        }
+        self.create_new_file("Reservations.json", data, '"Data"')
+
     def create_new_folder(self):
-        Clients_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Pools.json")
-        Money_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Made_money.json")
-        Reservations_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Reservations.json")
-        Prices_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Prices.json")
-        Working_hours_weekly_data = self.open_file(f"Pools/{self._pool_name}_Pools_Data/Working_hours_weekly.json")
-        return Clients_data, Money_data, Reservations_data, Prices_data, Working_hours_weekly_data
+        self.create_new_directory()
+        self.create_prices_json()
+        self.create_new_file("Made_money.json", {}, '"Money"')
+        self.create_new_file("Clients.json", {}, '"Clients"')
+        self.create_reservations_json()
+        self.create_Working_hours_weekly_json()
+        # return Clients_data, Money_data, Reservations_data,
+        # Prices_data, Working_hours_weekly_data
+
+    def change_all(self):
+        set = settings_handler(self._pool_name)
+        set.change_working_hours()
+        set.change_hourly_payment()
+        set.change_discounts()
 
     def start_creating(self):
         pools, passwords = self.pools_and_passwords()
-        pools["Pools"] = self.set_pool_tracks(pools["Pools"])
-        passwords["passwords"] = self.set_password(passwords["passwords"])
-        self.save_to_file("Pools/Pools.json", pools)
-        self.save_to_file("Pools/passwords.json", passwords)
+        pools = self.set_pool_tracks(pools["Pools"])
+        passwords = self.set_password(passwords["passwords"])
+        self.save_to_file("Pools/Pools.json", pools, '"Pools"')
+        self.save_to_file("Pools/passwords.json", passwords, '"passwords"')
+        self.create_new_folder()
+        self.change_all()
 
 
 class decision_handlers(Get_from_keyboard):
@@ -413,16 +481,18 @@ def run_in_terminal():
 
 
 def main():
-    print(f'{Style.BRIGHT}{Fore.CYAN}Gdzie chcesz odpalić program')
-    print(f"W aplikacji czy Terminalu:{Style.NORMAL}{Fore.YELLOW}")
-    a = input()
-    if a.lower() == "terminal" or a.lower() == 't':
-        print(f"{Fore.CYAN}", end="")
-        run_in_terminal()
-    elif a.lower() == "aplikacja" or 'a':
-        bootapp()
-    else:
-        ValueError("Oczekiwana odpowiedź: terminal, t, aplikacja lub a")
+    print(f'{Style.BRIGHT}{Fore.CYAN}', end="")
+    run_in_terminal()
+    # print(f'{Style.BRIGHT}{Fore.CYAN}Gdzie chcesz odpalić program')
+    # print(f"W aplikacji czy Terminalu:{Style.NORMAL}{Fore.YELLOW}")
+    # a = input()
+    # if a.lower() == "terminal" or a.lower() == 't':
+    #     print(f"{Fore.CYAN}", end="")
+    #     run_in_terminal()
+    # elif a.lower() == "aplikacja" or 'a':
+    #     bootapp()
+    # else:
+    #     ValueError("Oczekiwana odpowiedź: terminal, t, aplikacja lub a")
 
 
 if __name__ == "__main__":

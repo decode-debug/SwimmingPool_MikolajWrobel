@@ -208,6 +208,21 @@ class Get_from_keyboard():
         return ans["data"]
 
     def import_id(self):
+
+        def check_id(id):
+            if (re.match(r'^\d{6}$', id) or re.match(r'^\d{1}$', id)) is False:
+                return False
+            sum = 0
+            if len(id) == 6:
+                for num in id:
+                    sum += int(num)
+                sum -= int(id[-1])
+                if sum % 10 == int(id[-1]):
+                    return True
+            elif int(id) == 0:
+                return True
+            return False
+
         string = "(Jeśli klient jescze nie ma id wpisz 0)"
         stri = "poinformuj że go nie ma pisząc 0"
         incorrect = f"Podaj poprawenie id [w formacie 0000000] lub {stri}"
@@ -216,8 +231,7 @@ class Get_from_keyboard():
                 'type': 'input',
                 'name': 'data',
                 'message': f"Podaj numer karty klienta {string}:",
-                'validate': lambda id: True if
-                re.match(r'^\d{6}$', id) or re.match(r'^\d{1}$', id)
+                'validate': lambda id: True if check_id(id) is True
                 else f'{incorrect}'
             }]
         ans = prompt(questions[0])
@@ -380,32 +394,36 @@ class Get_from_keyboard():
             "Monday": "Poniedzialek",
             "Tuesday": "Wtorek",
             "Wednesday": "Sroda",
-            "Thrusday": "Czwartek",
+            "Thursday": "Czwartek",
             "Friday": "Piatek",
             "Saturday": "Sobota",
             "Sunday": "Niedziela"
         }
         day = days[eng_day]
-
+        string = "(Jeśli basen w tym dniu jest zamknięty wpisz 0)"
         incorrect = ' np. 2077-07-07 07:07:07'
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': f"Podaj godzinę otwarcia basenu w dniu {day}:",
+            'message': f"Podaj godzinę otwarcia basenu w dniu {day} {string}:",
             'validate': lambda hour: True if
-            re.match(r'^\d{2}:\d{2}$', hour)
-            else f'Podaj datę w formacie iso RRRR-MM-DD{incorrect}'
+            re.match(r'^\d{2}:\d{2}$', hour) or hour == "0"
+            else f'Podaj datę w formacie iso RRRR-MM-DD{incorrect} lub wpisz 0'
         },
         {
             'type': 'input',
             'name': 'data',
-            'message': f"Podaj godziny zamknięcia basenu w dniu {day}:",
+            'message': f"Podaj godziny zamknięcia basenu w dniu {day} {string}:",
             'validate': lambda hour: True if
             re.match(r'^\d{2}:\d{2}$', hour)
-            else f'Podaj datę w formacie iso RRRR-MM-DD{incorrect}'
+            else f'Podaj datę w formacie iso RRRR-MM-DD{incorrect} lub wpisz 0'
         }
         ]
-        return [prompt(questions[0])["data"], prompt(questions[1])["data"]]
+        open = prompt(questions[0])["data"]
+        if open != '0':
+            return [None, None]
+        close = prompt(questions[1])["data"]
+        return [open, close]
 
     def import_tracks(self):
         questions = [{

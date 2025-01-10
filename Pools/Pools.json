@@ -1,6 +1,7 @@
 {
    "Pools":{
        "Maly":6,
-       "Obrotny":8
+       "Obrotny":8,
+       "Nowy":8
     }
 }

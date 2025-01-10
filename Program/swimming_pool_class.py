@@ -12,7 +12,7 @@ class Swimming_pool:
         defining Swimming_pool class
         self :: str
         name :: str
-        working_hours :: typle
+        working_hours :: tuple
         """
         self._pool_name = name
         self._tracks = self.load_tracks()
