@@ -1,8 +1,42 @@
 from Program.swimming_pool_class import Swimming_pool, Client
 from Program.swimming_pool_class import Dict_of_clients, Price
 from Program.swimming_pool_class import Aviability_and_prices, TimeTable
-from Program.swimming_pool_class import File_menagement
+from Program.swimming_pool_class import File_menagement, earnings_meanagement
+from Program.swimming_pool_class import NieZnalezionoPliku
 from pandas import DataFrame
+import datetime as dt
+import pytest
+
+
+def test_Swimming_pool_class():
+    pool = Swimming_pool("Maly")
+    assert pool
+
+
+def test_Swimming_pool_get_name():
+    pool = Swimming_pool("Maly")
+    assert pool.get_name == 'Maly'
+
+
+def test_Swimming_pool_get_tracks():
+    pool = Swimming_pool("Maly")
+    assert pool.get_tracks == 6
+
+
+def test_Swimming_pool_load_tracks():
+    pool = Swimming_pool("Maly")
+    assert pool.load_tracks() == 6
+
+
+def test_Client_as_customer():
+    client = Client(570002, "Maly")
+    assert client
+
+
+def test_File_menagement_check_file_exists():
+    exists = File_menagement("Maly")
+    with pytest.raises(NieZnalezionoPliku):
+        exists.check_file_exists("NieMaMnie.json")
 
 
 def test_File_menagement_import_file():
@@ -26,43 +60,6 @@ def test_File_menagement_save_to_file_dict():
     menage = File_menagement("Maly")
     Data = menage.import_from_file("Working_hours_weekly.json", "Week")
     menage.safe_to_file_dict("Working_hours_weekly.json", Data, "w", '"Week"')
-
-
-def test_Swimming_pool_class():
-    pool = Swimming_pool("Maly")
-    assert pool
-
-
-def test_Swimming_pool_get_name():
-    pool = Swimming_pool("Maly")
-    assert pool.get_name == 'Maly'
-
-
-def test_Swimming_pool_get_tracks():
-    pool = Swimming_pool("Maly")
-    assert pool.get_tracks == 6
-
-
-def test_Swimming_pool_load_tracks():
-    pool = Swimming_pool("Maly")
-    assert pool.load_tracks() == 6
-
-
-# def test_set_tracks():
-#     pool = Swimming_pool("Maly")
-#     assert pool.load_tracks() == 6
-#     pool.set_tracks(8)
-
-
-# def test_set_tracks_revarse():
-#     pool = Swimming_pool("Maly")
-#     assert pool.load_tracks() == 8
-#     pool.set_tracks(6)
-
-
-def test_Client_as_customer():
-    client = Client(570002, "Maly")
-    assert client
 
 
 def test_Client_as_group():
@@ -178,6 +175,23 @@ def test_Timetable_get_Data():
     assert timetable.get_Data == data
 
 
+def test_TimeTable_import_Data_from_Reservations():
+    timetable = TimeTable("Maly")
+    Data = {
+        'reservation_num': [1, 1, 1, 1, 1],
+        "client's_id": ['500005', '580003', '670003', '720009', '080008'],
+        'starting_hour': ['2024-11-04 11:00:00', '2024-11-04 11:00:00',
+                          '2024-11-04 11:00:00', '2024-11-04 11:00:00',
+                          '2024-11-04 11:00:00'],
+        'ending_hour': ['2024-11-04 13:00:00', '2024-11-04 11:00:00',
+                        '2024-11-04 11:00:00', '2024-11-04 11:00:00',
+                        '2024-11-04 11:00:00'],
+        'track': [2, 6, 3, 1, 5]
+        }
+    data = timetable.import_Data_from_Reservations()
+    assert data == Data
+
+
 def test_TimeTable_table():
     timetable = TimeTable("Maly")
 
@@ -198,6 +212,35 @@ def test_TimeTable_table():
     Table = timetable.table()
     Table_dict = Table.to_dict(orient="records")
     assert Table_dict == table()
+
+
+def test_TimeTable_check_if_reservations_same():
+    timetable = TimeTable("Maly")
+    answer = timetable.check_if_reservations_not_same("500005",
+                                                      "2024-11-04 11:00:00",
+                                                      "2024-11-04 13:00:00", 2)
+    assert answer is True
+
+
+def test_TimeTable_check_if_reservations_not_same():
+    timetable = TimeTable("Maly")
+    answer = timetable.check_if_reservations_not_same("500005",
+                                                      "2024-11-04 11:00:00",
+                                                      "2024-11-04 13:00:00", 8)
+    assert answer is False
+
+
+def test_TimeTable_filtered():
+    timetable = TimeTable("Maly")
+    filtered_Table = {
+        "client's_id": {0: '500005'},
+        'ending_hour': {0: '2024-11-04 13:00:00'},
+        'reservation_num': {0: 1},
+        'starting_hour': {0: '2024-11-04 11:00:00'},
+        'track': {0: 2}
+    }
+    filtered_table = timetable.Table_filtered("500005", "client's_id")
+    assert filtered_table.to_dict() == filtered_Table
 
 
 def test_TimeTable_book():
@@ -288,6 +331,31 @@ def test_Aviability_and_prices_set_working_hours():
     available.set_working_hours("Monday", ["09:00", "20:00"])
 
 
+def test_Aviability_and_prices_weekdays_():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    assert available.weekdays_(0) == "Monday"
+
+
+def test_Aviability_and_prices_weekday_():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    assert available.weekday_() == "Monday"
+
+
+def test_Aviability_and_prices_ending_hour():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    assert available.ending_hour() == '2024-11-04 14:00:00'
+
+
+def test_Aviability_and_prices_add_time():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    add = available.add_time("2024-11-04 12:00:00", "03:00", "2")
+    assert add == "2024-11-06 15:00:00"
+
+
 def test_Aviability_and_prices_find_available_track():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly", 1)
@@ -331,7 +399,8 @@ def test_Aviability_and_prices_risky_reservations():
 def test_Aviability_and_prices_set_next_day():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
-    assert available.set_next_day("2024-11-04 12:00:00") == ("2024-11-05 09:00:00", "2024-11-05 11:00:00")
+    next_day = available.set_next_day("2024-11-04 12:00:00")
+    assert next_day == ("2024-11-05 09:00:00", "2024-11-05 11:00:00")
 
 
 def test_Aviability_and_prices_hour_in_working_hours():
@@ -381,9 +450,146 @@ def test_Aviability_and_prices_suggest_resevation():
 
 
 def test_Price__init__():
+    Price(500005, 1, "Maly")
+
+
+def test_Price_get_price():
     prices = Price(500005, 1, "Maly")
+    assert prices.get_price == 7500
+
+
+def test_Price_get_swimming_time():
+    prices = Price(500005, 1, "Maly")
+    assert prices.get_swimming_time == 2.0
+
+
+def test_Price_get_clients_age():
+    prices = Price(500005, 1, "Maly")
+    assert prices.get_clients_age == dt.timedelta(days=12969)
+
+
+def test_Price_get_clients_age_type():
+    prices = Price(500005, 1, "Maly")
+    assert prices.get_clients_age_type == 'Adult'
 
 
 def test_Price_price():
     prices = Price(500005, 1, "Maly")
     assert prices.price() == 7500
+
+
+def test_Price_weekdays_():
+    prices = Price(500005, 1, "Maly")
+    assert prices.weekdays_(0) == "Monday"
+
+
+def test_Price_weekday_():
+    prices = Price(500005, 1, "Maly")
+    assert prices.weekday_() == "Monday"
+
+
+def test_Price_clients_age_type():
+    prices = Price(500005, 1, "Maly")
+    assert prices.clients_age_type() == "Adult"
+
+
+def test_Price_find_reservation():
+    prices = Price("500005", 1, "Maly")
+    data = {
+        "client's_id": {0: '500005'},
+        'ending_hour': {0: '2024-11-04 13:00:00'},
+        'reservation_num': {0: 1},
+        'starting_hour': {0: '2024-11-04 11:00:00'},
+        'track': {0: 2}
+        }
+    assert prices.find_reservation().to_dict() == data
+
+
+def test_Price_clients_day():
+    prices = Price(500005, 1, "Maly")
+    assert prices.day() == dt.date(2024, 11, 4)
+
+
+def test_Price_clients_swimming_time():
+    prices = Price(500005, 1, "Maly")
+    assert prices.swimming_time() == 2.0
+
+
+def test_Price_clients_price():
+    prices = Price(500005, 1, "Maly")
+    assert prices.price() == 7500
+
+
+def test_earnings_menagement_get_earnings():
+    earnigs = earnings_meanagement("2024-11-04", "Maly")
+    money = {
+       "2024-11-04 18:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 14:00:00": {"Gross income": 5000, "Tax": 400},
+       "2024-11-04 11:35:17": {"Gross income": 2500, "Tax": 200},
+       "2024-11-04 19:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 21:35:17": {"Gross income": 7500, "Tax": 600},
+       "2025-01-05 20:14:53": {"Gross income": 7500, "Tax": 600},
+       "2025-01-07 19:38:05": {"Gross income": 7500, "Tax": 600},
+       "2025-01-08 23:26:07": {"Gross income": 4500, "Tax": 360}
+    }
+    assert earnigs.get_earnings == money
+
+
+def test_earnings_menagement_get_days_gross():
+    earnigs = earnings_meanagement("2024-11-04", "Maly")
+    assert earnigs.get_days_gross == 30000
+
+
+def test_earnings_menagement_get_days_tax():
+    earnigs = earnings_meanagement("2024-11-04", "Maly")
+    assert earnigs.get_days_tax == 2400
+
+
+def test_earnings_menagement_earnings_from_file():
+    earnigs = earnings_meanagement("2024-11-04", "Maly")
+    money = {
+       "2024-11-04 18:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 14:00:00": {"Gross income": 5000, "Tax": 400},
+       "2024-11-04 11:35:17": {"Gross income": 2500, "Tax": 200},
+       "2024-11-04 19:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 21:35:17": {"Gross income": 7500, "Tax": 600},
+       "2025-01-05 20:14:53": {"Gross income": 7500, "Tax": 600},
+       "2025-01-07 19:38:05": {"Gross income": 7500, "Tax": 600},
+       "2025-01-08 23:26:07": {"Gross income": 4500, "Tax": 360}
+    }
+    assert earnigs.earnings_from_file() == money
+
+
+def test_earnings_menagement_find_all_day_earning():
+    earnigs = earnings_meanagement("2024-11-04", "Maly")
+    earnigs.find_all_day_earnings()
+    assert earnigs._days_gross == 60000 and earnigs._days_tax == 4800
+
+
+def test_earnings_menagement_day_earnings():
+    earnigs = earnings_meanagement("2024-11-04", "Maly")
+    money = {
+       "2024-11-04 18:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 14:00:00": {"Gross income": 5000, "Tax": 400},
+       "2024-11-04 11:35:17": {"Gross income": 2500, "Tax": 200},
+       "2024-11-04 19:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 21:35:17": {"Gross income": 7500, "Tax": 600}
+    }
+    assert earnigs.day_earnings() == money
+
+
+def test_earnings_menagement_add_earnings():
+    earnigs = earnings_meanagement("2024-11-04 20:00:00", "Maly", 7500, 600)
+    money = {
+       "2024-11-04 18:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 14:00:00": {"Gross income": 5000, "Tax": 400},
+       "2024-11-04 11:35:17": {"Gross income": 2500, "Tax": 200},
+       "2024-11-04 19:00:00": {"Gross income": 7500, "Tax": 600},
+       "2024-11-04 21:35:17": {"Gross income": 7500, "Tax": 600},
+       "2025-01-05 20:14:53": {"Gross income": 7500, "Tax": 600},
+       "2025-01-07 19:38:05": {"Gross income": 7500, "Tax": 600},
+       "2025-01-08 23:26:07": {"Gross income": 4500, "Tax": 360},
+       '2024-11-04 20:00:00': {'Gross income': 7500, 'Tax': 600}
+    }
+    earnigs.add_earnings()
+    assert earnigs._earnings == money

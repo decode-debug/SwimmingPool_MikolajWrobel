@@ -283,14 +283,15 @@ class Get_from_keyboard():
         return ans["data"]
 
     def import_res_data(self):
-        string = ' jeśli klient już wpisał swoje wszystkie, wpisz 0, '
-        string2 = 'jeśli klient nie pamięta wpisz "Nie"'
+        string = ' jeśli klient już podał już swoje wszystkie rezrwacje, '
+        string2 = 'wpisz 0, jeśli klient nie pamięta wpisz "Nie"'
         questions = [{
             'type': 'input',
             'name': 'data',
             'message': f"Podaj numer rezerwacji klienta,{string}{string2}:",
-            # 'validate': lambda track:
-            # else f"Podaj poprawnie liczbę"
+            'validate': lambda track: True if re(r'^\d{6}$', track) or
+            track == '0' or track == "Nie"
+            else "Podaj liczbę w formacie 000000, wpisz 0 lub napisz Nie"
         }]
         ans = prompt(questions[0])
         return ans["data"]
@@ -339,12 +340,19 @@ class Get_from_keyboard():
         }]
         return prompt(questions[0])["data"]
 
-    def import_price(self):
+    def import_price(self, ii):
+        def age_type_pol(ii):
+            ages = {
+                1: "Dorosły",
+                2: "Dziecko do 12 lat",
+                3: "Dziecko do 3 lat"
+            }
+            return ages[ii]
 
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': "Podaj nową cenę dla:",
+            'message': f"Podaj nową cenę dla {age_type_pol(ii)}:",
         }]
         return prompt(questions[0])["data"]
 

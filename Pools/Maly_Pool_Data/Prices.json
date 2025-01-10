@@ -1,18 +1,6 @@
 {
-    "Prices":{
-        "Hourly_fee": {
-        "Adult":5000,
-        "Kid_up_to_12":2500,
-        "Kid_up_to_3":0
-    },
-        "Discounts":{
-            "Monday": 25,
-            "Tuesday": 0,
-            "Wednesday": 0,
-            "Thrusday": 15,
-            "Friday": 0,
-            "Saturday": 0,
-            "Sunday": 0
+   "Prices":{
+       "Hourly_fee":{"Adult": 5000, "Kid_up_to_12": 2500, "Kid_up_to_3": 0},
+       "Discounts":{"Monday": 25, "Tuesday": 0, "Wednesday": 0, "Thrusday": 15, "Friday": 0, "Saturday": 0, "Sunday": 0}
     }
-}
 }

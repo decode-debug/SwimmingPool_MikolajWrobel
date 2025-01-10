@@ -91,4 +91,4 @@ Though it can be replaced with InquirerPy (for newer versions of python), it wil
 
 
 ## For Mac users
-Never have I used it on mac so Have fun :)
+Never have I used it on mac so have fun :)

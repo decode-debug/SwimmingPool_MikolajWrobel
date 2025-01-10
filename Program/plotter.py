@@ -10,13 +10,16 @@ import os
 from datetime import date
 import math
 import json
-# flake8:
 
 
 def get_pools():
     file_path = "Pools/Pools.json"
     with open(file_path, 'r') as json_file:
-        return json.load(json_file)["Pools"].keys()
+        data = json.load(json_file)["Pools"]
+        pools = []
+        for pool in data:
+            pools.append(pool)
+        return pools
 
 
 class Reservation_suggestion_handler(TimeTable):
@@ -30,6 +33,10 @@ class Reservation_suggestion_handler(TimeTable):
         self._sugg_starting = None
         self._sugg_ending = None
         self._sugg_track = None
+
+    @property
+    def get_syggestion(self):
+        return self._sugg_starting, self._sugg_ending, self._sugg_track
 
     def check_reservation_aviablity(self):
         available = Aviability_and_prices(self._reserved_from,
@@ -230,7 +237,6 @@ class settings_handler(Get_from_keyboard, File_menagement):
         self._pool_name = pool_name
 
     def change_working_hours(self):
-        """Fix"""
         working_hours = self.import_from_file("Working_hours_weekly.json",
                                               "Week")
         for day in working_hours:
@@ -238,13 +244,6 @@ class settings_handler(Get_from_keyboard, File_menagement):
             working_hours[day] = new_hours
         self.safe_to_file_dict("Working_hours_weekly.json",
                                working_hours, "w", '"Week"')
-        # weekday = self.import_week_day()
-        # working_hours = self.import_from_file("Working_hours_weekly.json",
-        #                                       "Week")
-        # new_hours = self.import_working_hours(weekday)
-        # working_hours[weekday] = new_hours
-        # self.safe_to_file_dict("Working_hours_weekly.json",
-        #                        working_hours, "w", '"Week"')
 
     def change_password(self):
         passwords = self.import_from_file("passwords.json", "passwords")
@@ -265,9 +264,11 @@ class settings_handler(Get_from_keyboard, File_menagement):
         """Fix"""
         prices = self.import_from_file("Prices.json", "Prices")
         fees = prices["Hourly_fee"]
+        ii = 0
         for fee in fees:
+            ii += 1
             print(f'fee: {fees[fee]}')
-            fees[fee] = int(self.import_price())
+            fees[fee] = int(self.import_price(ii))
             self.safe_to_file_dict("Prices.json", prices, "w", '"Prices"')
 
     def change_tracks(self):
@@ -399,8 +400,6 @@ class swimming_pool_creator(Get_from_keyboard):
         self.create_new_file("Clients.json", {}, '"Clients"')
         self.create_reservations_json()
         self.create_Working_hours_weekly_json()
-        # return Clients_data, Money_data, Reservations_data,
-        # Prices_data, Working_hours_weekly_data
 
     def change_all(self):
         set = settings_handler(self._pool_name)
@@ -484,16 +483,6 @@ def run_in_terminal():
 def main():
     print(f'{Style.BRIGHT}{Fore.CYAN}', end="")
     run_in_terminal()
-    # print(f'{Style.BRIGHT}{Fore.CYAN}Gdzie chcesz odpalić program')
-    # print(f"W aplikacji czy Terminalu:{Style.NORMAL}{Fore.YELLOW}")
-    # a = input()
-    # if a.lower() == "terminal" or a.lower() == 't':
-    #     print(f"{Fore.CYAN}", end="")
-    #     run_in_terminal()
-    # elif a.lower() == "aplikacja" or 'a':
-    #     bootapp()
-    # else:
-    #     ValueError("Oczekiwana odpowiedź: terminal, t, aplikacja lub a")
 
 
 if __name__ == "__main__":

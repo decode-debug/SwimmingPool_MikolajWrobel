@@ -4,6 +4,7 @@ from pandas import DataFrame, concat
 from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
+from os import path
 
 
 class Swimming_pool:
@@ -34,14 +35,9 @@ class Swimming_pool:
             data = json.load(json_file)
         return data["Pools"][f'{self._pool_name}']
 
-    # def set_tracks(self, new_tracks):
-    #     '''setting ammount of tracks in Swimming_pool'''
-    #     file = "Pools.json"
-    #     with (open(file, 'r')) as json_file:
-    #         data = json.load(json_file)
-    #     tracks = data["Pools"]
-    #     tracks[f'{self._name}'] = new_tracks
-    #     open.safe_to_file_dict(file, tracks, "w", '"Pools"')
+
+class NieZnalezionoPliku(FileNotFoundError):
+    pass
 
 
 class File_menagement(Swimming_pool):
@@ -52,6 +48,11 @@ class File_menagement(Swimming_pool):
     def get_tracks(self):
         return super().get_tracks
 
+    def check_file_exists(self, file):
+        if not path.exists(file):
+            raise NieZnalezionoPliku(f"Nie znaleziono pliku'{file}'")
+        return
+
     def file_path(self, file):
         if file != "passwords.json" and file != "Pools.json":
             file_path = f"Pools/{self._pool_name}_Pool_Data/{file}"
@@ -61,37 +62,20 @@ class File_menagement(Swimming_pool):
 
     def import_file(self, file):
         file_path = self.file_path(file)
+        self.check_file_exists(file_path)
         with open(file_path, 'r') as json_file:
             return json.load(json_file)
 
     def import_from_file(self, file, request):
         file_path = self.file_path(file)
+        self.check_file_exists(file_path)
         with (open(file_path, 'r')) as json_file:
             data = json.load(json_file)
         return data[request]
 
-    # def safe_to_file_list(self, file, Data, name=0):
-    #     with open(file, 'w') as json_file:
-    #         json_file.write("{")
-    #         json_file.write("\n")
-    #         json_file.write("   ")
-    #         if name != 0:
-    #             json_file.write(f'{name}:')
-    #             json_file.write("[")
-    #             json_file.write("\n")
-    #         for element in Data:
-    #             json_file.write("       ")
-    #             json_file.write(json.dumps(element))
-    #             if element != Data[-1]:
-    #                 json_file.write(",")
-    #             json_file.write("\n")
-    #         json_file.write("    ")
-    #         json_file.write("]")
-    #         json_file.write("\n")
-    #         json_file.write("}")
-
     def safe_to_file_dict(self, file, Data, work, name=0):
         file_path = self.file_path(file)
+        self.check_file_exists(file_path)
         with open(file_path, f'{work}') as json_file:
             json_file.write("{")
             json_file.write("\n")
@@ -225,35 +209,6 @@ class Dict_of_clients(File_menagement):
         self.safe_to_file_dict("Clients.json", self._dict, "w", '"Clients"')
 
 
-# class Reservation:
-#     def __init__(self, client_id, track, water_entry, booked_hours):
-#         """
-#         client_id :: int
-#         track :: int
-#         water_entry :: int
-#         booked_hours :: int
-#         """
-#         self._client_id = client_id
-#         self._track = track
-#         self._water_entry = water_entry
-#         self._booked_hours = booked_hours
-
-#     def tracks(self) -> str:
-#         """Printing track occupied by client"""
-#         if self._group_size == 1:
-#             return f"{self._name} occupies track {self._track[0]}"
-#         if self._class_or_cust == 0:
-#             a = f"{self._name} occupies track {self._track[0]} "
-#             b = f"with {self._group_size - 1} other customers"
-#             return a+b
-#         else:
-#             a = ""
-#             for i in self._track:
-#                 a = a + f" {i}"
-#             str = "{self._name} occupies tracks{a}"
-#             return f"group of {self._group_size} named {str}"
-
-
 class Tickets:
     pass
 
@@ -296,7 +251,8 @@ class TimeTable(File_menagement):
             return False
 
     def Table_filtered(self, filter, row_key):
-        return self._Table[self._Table[row_key] == filter]
+        Table = self._Table[self._Table[row_key] == filter]
+        return Table
 
     def book(self, id, strating_hour, eding_hour, track):
         """Booking track for client"""
@@ -312,9 +268,9 @@ class TimeTable(File_menagement):
     def new_reservation_number(self, id):
         Table = self._Table[self._Table["client's_id"] == id]
         numbers = Table.to_dict(orient='list')["reservation_num"]
-        try:
+        if numbers:
             return numbers[-1] + 1
-        except:
+        else:
             return 1
 
     def remove_booking(self, id, strating_hour, eding_hour, track):
@@ -399,7 +355,7 @@ class Aviability_and_prices(File_menagement):
 
     def add_time(self, starting_hour, time, days):
         hours,  minutes = time.split(":")
-        add_time = timedelta(days, 0, 0, 0, int(minutes), int(hours))
+        add_time = timedelta(int(days), 0, 0, 0, int(minutes), int(hours))
         return dt.isoformat(dt.fromisoformat(starting_hour)
                             + add_time).replace('T', ' ')
 
@@ -456,7 +412,6 @@ class Aviability_and_prices(File_menagement):
         if self._working_hours != [None, None]:
             if self.hour_in_working_hours(starting_hour, ending_hour) is True:
                 starting_hour = self.add_time(starting_hour, "00:15", 0)
-                    # psoobily should implement timestamp changer
                 ending_hour = self.add_time(ending_hour, "00:15", 0)
             else:
                 """zresetuj do ranka następnego dnia"""
@@ -523,9 +478,9 @@ class Price(Client):
     def client_age(self):
         return dt.today().date() - date.fromisoformat(self._birthday)
 
-    def swimming_time(self):
-        get = TimeTable(self._pool_name)
-        get.get_Table
+    # def swimming_time(self):
+    #     get = TimeTable(self._pool_name)
+    #     get.get_Table
 
     def clients_age_type(self):
         if self._clients_age >= timedelta(12*365):
@@ -562,7 +517,7 @@ class Price(Client):
 
 
 class earnings_meanagement(File_menagement):
-    def __init__(self, day: dt,pool_name,  income: int = 0, tax: int = 0):
+    def __init__(self, day: dt, pool_name,  income: int = 0, tax: int = 0):
         super().__init__(pool_name)
         self._earnings = self.earnings_from_file()
         self._day = day
@@ -590,19 +545,20 @@ class earnings_meanagement(File_menagement):
 
     def find_all_day_earnings(self):
         for key in self._day_earnings.keys():
-            self._days_gross += self._day_earnings[key]["Gross imcome"]
+            self._days_gross += self._day_earnings[key]["Gross income"]
             self._days_tax += self._day_earnings[key]["Tax"]
 
     def day_earnings(self):
         day_earnings = {}
         for key in self._earnings.keys():
-            if dt.fromisoformat(key).date() == dt.fromisoformat(self._day).date():
+            day = dt.fromisoformat(self._day).date()
+            if dt.fromisoformat(key).date() == day:
                 day_earnings[key] = self._earnings[key]
         return day_earnings
 
     def add_earnings(self):
         self._earnings[self._day] = {
-                "Gross imcome": self._income,
+                "Gross income": self._income,
                 "Tax": self._tax
         }
 
