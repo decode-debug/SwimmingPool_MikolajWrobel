@@ -1,14 +1,13 @@
 from PyInquirer import prompt
 import re
-from swimming_pool_class import File_menagement, Dict_of_clients, Swimming_pool
-import json
+from swimming_pool_class import File_menagement, Dict_of_clients
 import maskpass
 import math
 from datetime import time
 
 
 class Create_client():
-    def __init__(self, pool_name):
+    def __init__(self, pool_name: str):
         self._pool_name = pool_name
 
     def input_class_or_cust(self):
@@ -268,7 +267,7 @@ class Get_from_keyboard():
             'type': 'input',
             'name': 'data',
             'message': f"Na jakim torze {request}{request_ending2}wpisz 0):",
-            'validate': lambda track: True  if 0 <= int(track) <= tracks
+            'validate': lambda track: True if 0 <= int(track) <= tracks
             else f"Podaj poprawnie tor jako liczbę z przedziału [0,{tracks}]"
         }]
         return [int(prompt(questions[0])["data"])]
@@ -280,7 +279,9 @@ class Get_from_keyboard():
             'type': 'input',
             'name': 'data',
             'message': f"Podaj numer rezerwacji klienta,{string}{string2}:",
-            'validate': lambda track: True if (track.isdigit() or track == '0' or track == "Nie")
+            'validate': lambda track: True if (track.isdigit()
+                                               or track == '0'
+                                               or track == "Nie")
             else "Podaj liczbę w formacie 000000, wpisz 0 lub napisz Nie"
         }]
         ans = prompt(questions[0])
@@ -343,7 +344,8 @@ class Get_from_keyboard():
             'type': 'input',
             'name': 'data',
             'message': f"Podaj nową cenę w groszach dla {age_type_pol(ii)}:",
-            "validate": lambda price: True if price.isdigit() else "Podaj liczbę!"
+            "validate": lambda price: True if price.isdigit()
+            else "Podaj liczbę!"
 
         }]
         return prompt(questions[0])["data"]
@@ -442,7 +444,7 @@ class Get_from_keyboard():
             'name': 'data',
             'message': "Podaj liczbę osób chcących pływać w basenie:",
             'validate': lambda swimmers: True if int(math.ceil(
-                (swimmers)/5)) <= limit
+                (int(swimmers))/5)) <= limit
             else f'Podaj liczbę całkowitą mniejszą niż {limit * 5}!'
         }]
-        return int(math.ceil((prompt(questions[0])["data"])/5)) * 5
+        return int(math.ceil(int((prompt(questions[0])["data"]))/5)) * 5

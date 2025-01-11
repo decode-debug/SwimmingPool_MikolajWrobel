@@ -8,7 +8,8 @@ def test_get_pools():
 
 def test_Reservation_suggestion_handler_check_reservation_aviablity():
     suggestion = Reservation_suggestion_handler("2024-11-04 11:00:00",
-                                                "02:00", "Maly", 1, "500005", 1)
+                                                "02:00", "Maly", 1,
+                                                "500005", 1)
     suggestion.check_reservation_aviablity()
     assert suggestion.get_syggestion == ('2024-11-04 11:00:00',
                                          '2024-11-04 13:00:00', [1])

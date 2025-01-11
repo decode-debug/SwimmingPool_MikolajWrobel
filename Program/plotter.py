@@ -1,4 +1,5 @@
-from swimming_pool_class import Aviability_and_prices, File_menagement, Swimming_pool
+from swimming_pool_class import Aviability_and_prices, File_menagement
+from swimming_pool_class import Swimming_pool
 from Keyboard_importer import Create_client, Get_from_keyboard
 from Keyboard_importer import choose_whats_next
 from swimming_pool_class import TimeTable, Price, earnings_meanagement, Client
@@ -23,8 +24,8 @@ def get_pools():
 
 
 class Reservation_suggestion_handler(TimeTable):
-    def __init__(self, reserved_from, reserved_time,
-                 pool_name, track, id, people_swimming):
+    def __init__(self, reserved_from: str, reserved_time: str,
+                 pool_name: str, track: list, id: str, people_swimming: int):
         super().__init__(pool_name)
         self._reserved_from = reserved_from
         self._reserved_time = reserved_time
@@ -45,7 +46,7 @@ class Reservation_suggestion_handler(TimeTable):
                                           self._reserved_time,
                                           self._pool_name,
                                           self._track,
-                                          self._people_swimming)
+                                          self._people_swimming, self._id)
         suggestion = available.suggest_resevation()
         self._sugg_starting, self._sugg_ending, self._sugg_track = suggestion
 
@@ -53,17 +54,18 @@ class Reservation_suggestion_handler(TimeTable):
         print("Sugestia rezerwacji:")
         print(f"> godzina wejścia do wody: {self._sugg_starting}")
         print(f"> godzina wyjścia z wody: {self._sugg_ending}")
-        print(f"> tor : {self._sugg_track}")
+        print(f"> tory : {self._sugg_track}")
 
     def decision(self):
         decide = Get_from_keyboard()
         decision = decide.import_decision()
         if decision == "Tak":
-            if self.check_if_reservations_not_same(self._id,
-                                                   self._sugg_starting,
-                                                   self._sugg_ending,
-                                                   self._sugg_track,
-                                                   self._people_swimming) is True:
+            check = self.check_if_reservations_not_same(self._id,
+                                                        self._sugg_starting,
+                                                        self._sugg_ending,
+                                                        self._sugg_track,
+                                                        self._people_swimming)
+            if check is True:
                 print(f"{Fore.RED}Już taka rezerwacja istnieje")
             else:
                 self.book(self._id, self._sugg_starting,
@@ -90,12 +92,12 @@ class Reservation_suggestion_handler(TimeTable):
 
 
 class Payment_handler(Get_from_keyboard, TimeTable):
-    def __init__(self, pool_name):
+    def __init__(self, pool_name: str):
         super(Get_from_keyboard, self).__init__(pool_name)
         super(TimeTable, self).__init__(pool_name)
         self._pool_name = pool_name
 
-    def get_single_payment(self, id, resevation):
+    def get_single_payment(self, id: int, resevation: int):
         """It can not be parted since I can pay fro more thean one swimming"""
         bill = Price(id, resevation, self._pool_name)
         price = bill.get_price
@@ -103,7 +105,7 @@ class Payment_handler(Get_from_keyboard, TimeTable):
         age_type = bill.get_clients_age_type
         return price, swimming_time, age_type
 
-    def import_res(self, id):
+    def import_res(self, id: int):
         res = self.import_res_data()
         while res == "Nie":
             Table = self.Table_filtered(str(id), "client's_id")
@@ -134,7 +136,7 @@ class Payment_handler(Get_from_keyboard, TimeTable):
         self._current_time = now.strftime("%H:%M:%S")
         print("DATE:", self._today, self._current_time)
 
-    def age_type_pol(self, age):
+    def age_type_pol(self, age: str):
         ages = {
             "Adult": "Dorosły",
             "Kid_up_to_12": "Dziecko do 12 lat",
@@ -142,7 +144,7 @@ class Payment_handler(Get_from_keyboard, TimeTable):
         }
         return ages[age]
 
-    def print_billing_data(self, reservation, position):
+    def print_billing_data(self, reservation: list, position: int):
         age = self.age_type_pol(reservation[0][2])
         time = f"Czas: {reservation[0][1]:5}"
         print(f'{position:3}. Wiek: {age}, {time}', end='')
@@ -190,7 +192,7 @@ class Payment_handler(Get_from_keyboard, TimeTable):
 
 
 class Finance_raport_handler(Get_from_keyboard):
-    def __init__(self, pool_name):
+    def __init__(self, pool_name: str):
         super().__init__()
         self._day = self.import_days_earnigs()
         self._pool_name = pool_name
@@ -238,7 +240,7 @@ class Finance_raport_handler(Get_from_keyboard):
 
 
 class settings_handler(Get_from_keyboard, File_menagement):
-    def __init__(self, pool_name):
+    def __init__(self, pool_name: str):
         super(Get_from_keyboard, self).__init__(pool_name)
         super(File_menagement, self).__init__(pool_name)
         self._pool_name = pool_name
@@ -304,18 +306,18 @@ class settings_handler(Get_from_keyboard, File_menagement):
 
 
 class swimming_pool_creator(Get_from_keyboard):
-    def __init__(self, pool_name):
+    def __init__(self, pool_name: str):
         super().__init__()
         self._pool_name = pool_name
         self._directory_name = f"Pools/{self._pool_name}_Pool_Data"
 
-    def open_file(self, file):
+    def open_file(self, file: str):
         file = open(file, "r")
         data = json.load(file)
         file.close()
         return data
 
-    def save_to_file(self, path, Data, name):
+    def save_to_file(self, path: str, Data: dict, name: str):
         with open(path, 'w') as json_file:
             json_file.write("{")
             json_file.write("\n")
@@ -344,11 +346,11 @@ class swimming_pool_creator(Get_from_keyboard):
         passwords_data = self.open_file("Pools/passwords.json")
         return pool_data, passwords_data
 
-    def set_pool_tracks(self, pools):
+    def set_pool_tracks(self, pools: dict):
         pools[self._pool_name] = int(self.import_tracks())
         return pools
 
-    def set_password(self, passwords):
+    def set_password(self, passwords: dict):
         passwords[self._pool_name] = self.import_password()
         return passwords
 
@@ -425,7 +427,7 @@ class swimming_pool_creator(Get_from_keyboard):
 
 
 class decision_handlers(Get_from_keyboard):
-    def __init__(self, pool_name):
+    def __init__(self, pool_name: str):
         super().__init__()
         self._pool_name = pool_name
 

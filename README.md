@@ -86,8 +86,9 @@ Program asks for user input in this way:
 ```
 
 ## Note:
-This program has unresolved problem with PyInquirer == 1.0.3, which is  supported up to python 3.9, due to using "mapping".
+1. This program has unresolved problem with PyInquirer == 1.0.3, which is  supported up to python 3.9, due to using "mapping".
 Though it can be replaced with InquirerPy (for newer versions of python), it will no loger properly validate inputs.
+2. Since test are strogly connected to swimmingpool called Maly it is suggested not to delete or change it's files
 
 
 ## For Mac users
