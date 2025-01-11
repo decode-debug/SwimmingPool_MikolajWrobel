@@ -170,7 +170,8 @@ def test_Timetable_get_Data():
         "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
                         "2024-11-04 11:00:00", "2024-11-04 11:00:00",
                         "2024-11-04 11:00:00"],
-        "track": [2, 6, 3, 1, 5]
+        "track": [[2], [6], [3], [1], [5, 6]],
+        'people_swimming': [1, 1, 1, 1, 10]
     }
     assert timetable.get_Data == data
 
@@ -186,7 +187,8 @@ def test_TimeTable_import_Data_from_Reservations():
         'ending_hour': ['2024-11-04 13:00:00', '2024-11-04 11:00:00',
                         '2024-11-04 11:00:00', '2024-11-04 11:00:00',
                         '2024-11-04 11:00:00'],
-        'track': [2, 6, 3, 1, 5]
+        'track': [[2], [6], [3], [1], [5, 6]],
+        'people_swimming': [1, 1, 1, 1, 10]
         }
     data = timetable.import_Data_from_Reservations()
     assert data == Data
@@ -206,7 +208,7 @@ def test_TimeTable_table():
             Data = import_Data_from_Reservations()
         Table = DataFrame(Data, columns=["reservation_num", "client's_id",
                                          "starting_hour", "ending_hour",
-                                         "track"])
+                                         "track", 'people_swimming'])
         Table_dict = Table.to_dict(orient="records")
         return Table_dict
     Table = timetable.table()
@@ -218,7 +220,8 @@ def test_TimeTable_check_if_reservations_same():
     timetable = TimeTable("Maly")
     answer = timetable.check_if_reservations_not_same("500005",
                                                       "2024-11-04 11:00:00",
-                                                      "2024-11-04 13:00:00", 2)
+                                                      "2024-11-04 13:00:00",
+                                                      2, 1)
     assert answer is True
 
 
@@ -226,7 +229,8 @@ def test_TimeTable_check_if_reservations_not_same():
     timetable = TimeTable("Maly")
     answer = timetable.check_if_reservations_not_same("500005",
                                                       "2024-11-04 11:00:00",
-                                                      "2024-11-04 13:00:00", 8)
+                                                      "2024-11-04 13:00:00",
+                                                      8, 1)
     assert answer is False
 
 
@@ -237,7 +241,8 @@ def test_TimeTable_filtered():
         'ending_hour': {0: '2024-11-04 13:00:00'},
         'reservation_num': {0: 1},
         'starting_hour': {0: '2024-11-04 11:00:00'},
-        'track': {0: 2}
+        'track': {0: [2]},
+        'people_swimming': {0: 1}
     }
     filtered_table = timetable.Table_filtered("500005", "client's_id")
     assert filtered_table.to_dict() == filtered_Table
@@ -247,7 +252,7 @@ def test_TimeTable_book():
     timetable = TimeTable("Maly")
     timetable.table()
     timetable.book("570002", "2024-11-04 11:00:00",
-                   "2024-11-04 11:00:00", 4)
+                   "2024-11-04 11:00:00", [4], 1)
     data = {
         "reservation_num": [1, 1, 1, 1, 1, 1],
         "client's_id": ["500005", "580003", "670003",
@@ -258,7 +263,8 @@ def test_TimeTable_book():
         "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
                         "2024-11-04 11:00:00", "2024-11-04 11:00:00",
                         "2024-11-04 11:00:00", "2024-11-04 11:00:00"],
-        "track": [2, 6, 3, 1, 5, 4]
+        "track": [[2], [6], [3], [1], [5, 6], [4]],
+        'people_swimming': [1, 1, 1, 1, 10, 1]
     }
     assert timetable.get_Data == data
 
@@ -267,7 +273,7 @@ def test_TimeTable_remove_book():
     timetable = TimeTable("Maly")
     timetable.table()
     timetable.remove_booking("570002", "2024-11-04 11:00:00",
-                             "2024-11-04 11:00:00", 4)
+                             "2024-11-04 11:00:00", 4, 1)
     data = {
         "reservation_num": [1, 1, 1, 1, 1],
         "client's_id": ["500005", "580003", "670003", "720009", "080008"],
@@ -277,7 +283,8 @@ def test_TimeTable_remove_book():
         "ending_hour": ["2024-11-04 13:00:00", "2024-11-04 11:00:00",
                         "2024-11-04 11:00:00", "2024-11-04 11:00:00",
                         "2024-11-04 11:00:00"],
-        "track": [2, 6, 3, 1, 5]
+        "track": [2, 6, 3, 1, 5],
+        "people_swimming": [1, 1, 1, 1, 10]
     }
     assert timetable.get_Data == data
 
@@ -380,6 +387,14 @@ def test_Aviability_and_prices_any_track_available():
     assert available.any_track_available(test) is True
 
 
+def test_Aviability_and_prices_any_track_available_group():
+    available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
+                                      "Maly")
+    test = available.risky_reservations("2024-12-04 09:00:00",
+                                        "2024-11-04 12:00:00")
+    assert available.any_track_available(test) is True
+
+
 def test_Aviability_and_prices_risky_reservations():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
@@ -392,7 +407,8 @@ def test_Aviability_and_prices_risky_reservations():
              "client's_id": '500005',
              'starting_hour': '2024-11-04 11:00:00',
              'ending_hour': '2024-11-04 13:00:00',
-             'track': 2}]
+             'track': [2],
+             "people_swimming": 1}]
     assert Table_dict == Data
 
 
@@ -442,11 +458,27 @@ def test_Aviability_and_prices_potential_reser_hour():
     assert returned == ("2024-11-04 12:15:00", "2024-11-04 14:15:00")
 
 
+def test_Aviability_and_prices_suggest_resevation_group_():
+    available = Aviability_and_prices("2024-12-08 09:00:00", "3:00",
+                                      "Maly", [0], 1)
+    returned = available.suggest_resevation()
+    assert returned == ("2024-12-08 09:00:00",
+                        "2024-12-08 12:00:00", [2])
+
+
+def test_Aviability_and_prices_suggest_resevation_group_1():
+    available = Aviability_and_prices("2024-12-04 09:00:00", "3:00",
+                                      "Maly", [0], 15)
+    returned = available.suggest_resevation()
+    assert returned == ("2024-12-04 09:00:00",
+                        "2024-12-04 12:00:00", [1, 2, 3])
+
+
 def test_Aviability_and_prices_suggest_resevation():
     available = Aviability_and_prices("2024-11-04 12:00:00", "2:00",
                                       "Maly")
     returned = available.suggest_resevation()
-    assert returned == ("2024-11-04 12:00:00", "2024-11-04 14:00:00", 1)
+    assert returned == ("2024-11-04 12:00:00", "2024-11-04 14:00:00", [1])
 
 
 def test_Price__init__():
@@ -465,7 +497,7 @@ def test_Price_get_swimming_time():
 
 def test_Price_get_clients_age():
     prices = Price(500005, 1, "Maly")
-    assert prices.get_clients_age == dt.timedelta(days=12969)
+    assert prices.get_clients_age == dt.timedelta(days=12970)
 
 
 def test_Price_get_clients_age_type():
@@ -500,7 +532,7 @@ def test_Price_find_reservation():
         'ending_hour': {0: '2024-11-04 13:00:00'},
         'reservation_num': {0: 1},
         'starting_hour': {0: '2024-11-04 11:00:00'},
-        'track': {0: 2}
+        'track': {0: 2}, "people_swimming": {0: 1}
         }
     assert prices.find_reservation().to_dict() == data
 

@@ -3,12 +3,13 @@ import re
 from swimming_pool_class import File_menagement, Dict_of_clients, Swimming_pool
 import json
 import maskpass
+import math
 from datetime import time
 
 
 class Create_client():
-    def __init__(self):
-        pass
+    def __init__(self, pool_name):
+        self._pool_name = pool_name
 
     def input_class_or_cust(self):
         string = "podaj 1 w przeciwnym razie 0: "
@@ -51,13 +52,13 @@ class Create_client():
         question = {
             'type': 'input',
             'name': 'day',
-            'message': "Podaj liczbę osób zamierzających pływać w szkółce: ",
+            'message': "Podaj dzień urodzin: ",
             'validate': lambda day: True if
             re.match(r'^\d{4}:\d{2}:\d{2}$', day)
-            else "Źle podałeś wartość - podaj 1 lub 0"
+            else "Źle podałeś wartość - podaj 0000:00:00"
         }
         if self._class_or_cust == 0:
-            self._birthday = int(prompt(question)['day'])
+            self._birthday = prompt(question)['day']
         elif self._class_or_cust == 1:
             self._birthday = "Not a person"
 
@@ -90,10 +91,11 @@ class Create_client():
         elif self._class_or_cust == 1:
             number += 100000 * (ord(self._name[0]) % 10)
             number += 10000 * (ord(self._name[1]) % 10)
-        file = "Clients.json"
-        with (open(file, 'r')) as json_file:
-            data = json.load(json_file)
-        other_clients = data["Clients"]
+        open = File_menagement(self._pool_name)
+        other_clients = open.import_from_file("Clients.json", "Clients")
+        # with (open(file, 'r')) as json_file:
+        #     data = json.load(json_file)
+        # other_clients = data["Clients"]
         other_nums = other_clients.keys()
         danger_nums = [num for num in other_nums
                        if number <= int(num) <= (number+9999)]
@@ -119,18 +121,14 @@ class Create_client():
         self.input_bithday()
         self.input_marurity()
         self.create_clients_number()
-        new_client = Dict_of_clients()
+        new_client = Dict_of_clients(self._pool_name)
         Data = [self._name, self._birthday, self._maturity,
                 self._class_or_cust, self._group_size]
         new_client.Add_client(self._id, Data)
         if self._class_or_cust == 1:
             print("Szkółka pływacka dodana")
         elif self._class_or_cust == 0:
-            print("Klient dodany")
-
-
-# new_client = Create_client()
-# new_client.create_client()
+            print(f"Klient dodany, jego id to {self._id}")
 
 
 def choose_whats_next():
@@ -157,11 +155,6 @@ class Get_from_keyboard():
         if password != get.import_from_file("passwords.json",
                                             "passwords")[pool_name]:
             exit()
-
-    def get_tracks(self, pool_name):
-        pool = Swimming_pool(pool_name)
-        tracks = pool.get_tracks
-        return tracks
 
     def import_decision(self):
         str = "godzinę(wpisz Tak lub Nie)"
@@ -244,7 +237,7 @@ class Get_from_keyboard():
         questions = [{
                 'type': 'input',
                 'name': 'data',
-                'message': f'{request}{request_ending}RRRR-MM-DD 00-00-00:',
+                'message': f'{request}{request_ending}RRRR-MM-DD 00:00:00:',
                 'validate': lambda date: True if
                 re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', date)
                 else f'Podaj datę w formacie iso {incorrect}'
@@ -267,20 +260,18 @@ class Get_from_keyboard():
         ans = prompt(questions[0])
         return ans["data"]
 
-    def import_track(self, pool_name):
+    def import_track(self, pool_name, tracks):
         request = "klient zamierza pływać(podaj liczbę z przedziału [1,"
         if pool_name != '':
-            tracks = self.get_tracks(pool_name)
             request_ending2 = f"{tracks}], jeśli klientowi wszystko jedno "
         questions = [{
             'type': 'input',
             'name': 'data',
             'message': f"Na jakim torze {request}{request_ending2}wpisz 0):",
-            'validate': lambda track: True if 0 <= int(track) <= tracks
+            'validate': lambda track: True  if 0 <= int(track) <= tracks
             else f"Podaj poprawnie tor jako liczbę z przedziału [0,{tracks}]"
         }]
-        ans = prompt(questions[0])
-        return ans["data"]
+        return [int(prompt(questions[0])["data"])]
 
     def import_res_data(self):
         string = ' jeśli klient już podał już swoje wszystkie rezrwacje, '
@@ -289,8 +280,7 @@ class Get_from_keyboard():
             'type': 'input',
             'name': 'data',
             'message': f"Podaj numer rezerwacji klienta,{string}{string2}:",
-            'validate': lambda track: True if re(r'^\d{6}$', track) or
-            track == '0' or track == "Nie"
+            'validate': lambda track: True if (track.isdigit() or track == '0' or track == "Nie")
             else "Podaj liczbę w formacie 000000, wpisz 0 lub napisz Nie"
         }]
         ans = prompt(questions[0])
@@ -352,7 +342,9 @@ class Get_from_keyboard():
         questions = [{
             'type': 'input',
             'name': 'data',
-            'message': f"Podaj nową cenę dla {age_type_pol(ii)}:",
+            'message': f"Podaj nową cenę w groszach dla {age_type_pol(ii)}:",
+            "validate": lambda price: True if price.isdigit() else "Podaj liczbę!"
+
         }]
         return prompt(questions[0])["data"]
 
@@ -428,7 +420,7 @@ class Get_from_keyboard():
         }
         ]
         open = prompt(questions[0])["data"]
-        if open != '0':
+        if open == '0':
             return [None, None]
         close = prompt(questions[1])["data"]
         return [open, close]
@@ -442,3 +434,15 @@ class Get_from_keyboard():
             int(tracks) else 'Podaj liczbę całkowitą!'
         }]
         return prompt(questions[0])["data"]
+
+    def import_people_swimming(self, tracks):
+        limit = int(math.floor((tracks*0.35)))
+        questions = [{
+            'type': 'input',
+            'name': 'data',
+            'message': "Podaj liczbę osób chcących pływać w basenie:",
+            'validate': lambda swimmers: True if int(math.ceil(
+                (swimmers)/5)) <= limit
+            else f'Podaj liczbę całkowitą mniejszą niż {limit * 5}!'
+        }]
+        return int(math.ceil((prompt(questions[0])["data"])/5)) * 5

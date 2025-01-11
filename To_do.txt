@@ -1,0 +1,1 @@
+1) Fix bug with wrong ammount of peope swimming in pool

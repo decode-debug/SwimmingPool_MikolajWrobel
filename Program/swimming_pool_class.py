@@ -5,6 +5,7 @@ from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta
 from os import path
+import numpy as np
 
 
 class Swimming_pool:
@@ -235,17 +236,20 @@ class TimeTable(File_menagement):
         """Sorts and decrypts Data"""
         Table = DataFrame(self._Data,
                           columns=["reservation_num", "client's_id",
-                                   "starting_hour", "ending_hour", "track"])
+                                   "starting_hour", "ending_hour", "track",
+                                   "people_swimming"])
         return Table
 
     def check_if_reservations_not_same(self, id, strating_hour,
-                                       eding_hour, track):
+                                       eding_hour, track, people_swimming):
         if len(self._Table[((self._Table["client's_id"] == id) &
                             (self._Table[
                                 "starting_hour"] == strating_hour) &
                             (self._Table[
                                 "ending_hour"] == eding_hour) &
-                            (self._Table["track"] == track))]) != 0:
+                            (np.isin(self._Table["track"], track)) &
+                            (self._Table["people_swimming"] == people_swimming)
+                            )]) != 0:
             return True
         else:
             return False
@@ -254,12 +258,13 @@ class TimeTable(File_menagement):
         Table = self._Table[self._Table[row_key] == filter]
         return Table
 
-    def book(self, id, strating_hour, eding_hour, track):
+    def book(self, id, strating_hour, eding_hour, tracks, people):
         """Booking track for client"""
         number = self.new_reservation_number(id)
         new_row = {"reservation_num": number,
                    "client's_id": id, "starting_hour": strating_hour,
-                   "ending_hour": eding_hour, "track": track}
+                   "ending_hour": eding_hour, "track": tracks,
+                   "people_swimming": people}
         self._Table = concat([self._Table, DataFrame([new_row])],
                              ignore_index=True)
         self._Data = self._Table.to_dict(orient='list')
@@ -273,14 +278,16 @@ class TimeTable(File_menagement):
         else:
             return 1
 
-    def remove_booking(self, id, strating_hour, eding_hour, track):
+    def remove_booking(self, id, strating_hour, eding_hour, track, people):
         """Removes clients reservation"""
         self._Table = self._Table[~((self._Table["client's_id"] == id) &
                                     (self._Table[
                                         "starting_hour"] == strating_hour) &
                                     (self._Table[
                                         "ending_hour"] == eding_hour) &
-                                    (self._Table["track"] == track))]
+                                    (np.isin(self._Table["track"], track)) &
+                                    (self._Table["people_swimming"] == people)
+                                    )]
         self._Data = self._Table.to_dict(orient='list')
         self.safe_Data_to_Reservations()
 
@@ -290,7 +297,8 @@ class TimeTable(File_menagement):
 
 
 class Aviability_and_prices(File_menagement):
-    def __init__(self, starting_hour, swimming_time, pool_name, track=0):
+    def __init__(self, starting_hour, swimming_time,
+                 pool_name, track=[0], people_swimming=1):
         """
         defining Aviability_and_prices class
         self :: str
@@ -306,7 +314,8 @@ class Aviability_and_prices(File_menagement):
         self._swimming_time = swimming_time
         self._weekday = self.weekday_()
         self._working_hours = self.load_working_hours()
-        self._track = int(track)
+        self._track = track
+        self._people_swimming = people_swimming
         self._ending_hour = self.ending_hour()
 
     @property
@@ -329,6 +338,10 @@ class Aviability_and_prices(File_menagement):
     @property
     def get_ending_hour(self):
         return self._ending_hour
+
+    @property
+    def get_people_swimming(self):
+        return self._people_swimming
 
     def load_working_hours(self):
         '''asking for workinghours of Swimming_pool'''
@@ -359,26 +372,42 @@ class Aviability_and_prices(File_menagement):
         return dt.isoformat(dt.fromisoformat(starting_hour)
                             + add_time).replace('T', ' ')
 
-    def find_available_track(self, Hazards):
-        if self._track == 0 and self.any_track_available(Hazards) is True:
-            track = 1
-            while track <= self._tracks:
-                if self.track_available(self._track, Hazards) is True:
-                    return track
-        if self.track_available(self._track, Hazards) is True:
-            return self._track
-
-    def track_available(self, track, Hazards) -> bool or int:  # type: ignore
+    def track_available(self, track, Hazards) -> int:  # type: ignore
         """checks if track is free at asked hour"""
-        Hazards_track = Hazards[Hazards["track"] == track]
-        if len(Hazards_track) < 5:
-            return True
-        return False
+        Hazards_track = Hazards[Hazards['track'].apply(
+            lambda tracks: any(num in tracks for num in track))]
+        if len(Hazards_track) != 0:
+            swimmers = Hazards_track["people_swimming"].sum()
+        else:
+            swimmers = 0
+        if self._people_swimming == 1:
+            if swimmers < 5:
+                return True
+            return False
+        else:
+            if swimmers == 0:
+                return True
+            return False
 
     def any_track_available(self, Hazards):
         """checks if any track is free at asked hour"""
-        if len(Hazards) < self._tracks * 5:
+        reserved_places = Hazards["people_swimming"].sum()
+        if reserved_places < self._tracks * 5:
             return True
+
+    def find_available_track(self, Hazards, already_booked):
+        booked_max = 0
+        for booked in already_booked:
+            if booked > booked_max:
+                booked_max = booked
+        if self._track == [0] and self.any_track_available(Hazards) is True:
+            track = booked_max + 1
+            while track <= self._tracks:
+                if self.track_available([track], Hazards) is True:
+                    return track
+                track += 1
+        if self.track_available(self._track, Hazards) is True:
+            return self._track[0]
 
     def risky_reservations(self, starting_hour, ending_hour):
         get = TimeTable("Maly")
@@ -422,13 +451,17 @@ class Aviability_and_prices(File_menagement):
         starting_hour = self._starting_hour
         ending_hour = self._ending_hour
         while False is False:
+            swimmers_to_rent = self._people_swimming
             Hazards = self.risky_reservations(starting_hour, ending_hour)
-            if type(self.find_available_track(Hazards)) is int:
-                track = self.find_available_track(Hazards)
-                break
+            track = []
+            for num in range(0, self.get_tracks):
+                if type(self.find_available_track(Hazards, track)) is int:
+                    track.append(self.find_available_track(Hazards, track))
+                    swimmers_to_rent -= 5
+                    if swimmers_to_rent <= 0:
+                        return starting_hour, ending_hour, track
             starting_hour, ending_hour = self.potential_reser_hour(
                                         starting_hour, ending_hour)
-        return starting_hour, ending_hour, track
 
 
 class Price(Client):
@@ -539,6 +572,10 @@ class earnings_meanagement(File_menagement):
     @property
     def get_days_tax(self):
         return self._days_tax
+
+    @property
+    def get_earnings_day(self):
+        return self._day_earnings
 
     def earnings_from_file(self):
         return self.import_from_file("Made_money.json", "Money")

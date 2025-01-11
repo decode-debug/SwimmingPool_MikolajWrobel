@@ -1,7 +1,7 @@
-from swimming_pool_class import Aviability_and_prices, File_menagement
+from swimming_pool_class import Aviability_and_prices, File_menagement, Swimming_pool
 from Keyboard_importer import Create_client, Get_from_keyboard
 from Keyboard_importer import choose_whats_next
-from swimming_pool_class import TimeTable, Price, earnings_meanagement
+from swimming_pool_class import TimeTable, Price, earnings_meanagement, Client
 from datetime import datetime as dt
 from colorama import Fore, Style
 import os
@@ -23,16 +23,18 @@ def get_pools():
 
 
 class Reservation_suggestion_handler(TimeTable):
-    def __init__(self, reserved_from, reserved_time, pool_name, track, id):
+    def __init__(self, reserved_from, reserved_time,
+                 pool_name, track, id, people_swimming):
         super().__init__(pool_name)
         self._reserved_from = reserved_from
         self._reserved_time = reserved_time
         self._pool_name = pool_name
-        self._track = int(track)
+        self._track = track
         self._id = id
         self._sugg_starting = None
         self._sugg_ending = None
         self._sugg_track = None
+        self._people_swimming = people_swimming
 
     @property
     def get_syggestion(self):
@@ -41,7 +43,9 @@ class Reservation_suggestion_handler(TimeTable):
     def check_reservation_aviablity(self):
         available = Aviability_and_prices(self._reserved_from,
                                           self._reserved_time,
-                                          self._pool_name, self._track)
+                                          self._pool_name,
+                                          self._track,
+                                          self._people_swimming)
         suggestion = available.suggest_resevation()
         self._sugg_starting, self._sugg_ending, self._sugg_track = suggestion
 
@@ -58,11 +62,13 @@ class Reservation_suggestion_handler(TimeTable):
             if self.check_if_reservations_not_same(self._id,
                                                    self._sugg_starting,
                                                    self._sugg_ending,
-                                                   self._sugg_track) is True:
+                                                   self._sugg_track,
+                                                   self._people_swimming) is True:
                 print(f"{Fore.RED}Już taka rezerwacja istnieje")
             else:
                 self.book(self._id, self._sugg_starting,
-                          self._sugg_ending, self._track)
+                          self._sugg_ending, self._track,
+                          self._people_swimming)
                 self.report_and_save()
 
     def report_and_save(self):
@@ -73,7 +79,8 @@ class Reservation_suggestion_handler(TimeTable):
         if answer == "Tak":
             removebook = TimeTable(self._pool_name)
             removebook.remove_booking(self._id, self._sugg_starting,
-                                      self._sugg_ending, self._track)
+                                      self._sugg_ending, self._track,
+                                      self._people_swimming)
         print(f"{Fore.CYAN}", end="")
 
     def reservation_suggestion(self):
@@ -196,11 +203,11 @@ class Finance_raport_handler(Get_from_keyboard):
 
     def print_all_day_transactions(self):
         money = earnings_meanagement(self._day, self._pool_name)
-        earnings = money.get_earnings
+        earnings = money.get_earnings_day
         ii = 0
         for earning in earnings:
             ii += 1
-            gross = earnings[earning]["Gross imcome"]
+            gross = earnings[earning]["Gross income"]
             tax = earnings[earning]["Tax"]
             print(f"{ii}.{earning} Brutto: {gross//100:>5}.", end='')
             print(f"{gross%100:2} Podatek: {tax//100:>5}.{tax%100:2}", end='')
@@ -425,13 +432,20 @@ class decision_handlers(Get_from_keyboard):
     def reservation_handler(self):
         id = self.import_id()
         if id == "0":
-            new_client = Create_client()
+            new_client = Create_client(self._pool_name)
             new_client.create_client()
         reserved_from = self.import_swimming_start()
         reserved_time = self.import_swimming_time()
-        track = self.import_track(self._pool_name)
+        tracks = Swimming_pool(self._pool_name).get_tracks
+        if Client(id, self._pool_name).get_class_or_cust == 0:
+            track = self.import_track(self._pool_name, tracks)
+            people_swimming = 1
+        else:
+            track = [0]
+            people_swimming = self.import_people_swimming(tracks)
         suggest = Reservation_suggestion_handler(reserved_from, reserved_time,
-                                                 self._pool_name, track, id)
+                                                 self._pool_name, track, id,
+                                                 people_swimming)
         suggest.reservation_suggestion()
 
     def payment_handler(self):
