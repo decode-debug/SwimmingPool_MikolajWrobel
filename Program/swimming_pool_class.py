@@ -1,4 +1,3 @@
-# from typing import List
 import json
 from pandas import DataFrame, concat
 from datetime import datetime as dt
@@ -7,6 +6,14 @@ from datetime import timedelta
 from os import path
 import math
 from typing import List
+
+
+class NieZnalezionoPliku(FileNotFoundError):
+    pass
+
+
+class BłądPrzekroczeniaCzasu(TimeoutError):
+    pass
 
 
 class Swimming_pool:
@@ -36,10 +43,6 @@ class Swimming_pool:
         with (open(file, 'r')) as json_file:
             data = json.load(json_file)
         return data["Pools"][f'{self._pool_name}']
-
-
-class NieZnalezionoPliku(FileNotFoundError):
-    pass
 
 
 class File_menagement(Swimming_pool):
@@ -491,7 +494,7 @@ class Aviability_and_prices(File_menagement):
                                         starting_hour, ending_hour)
             ii += 1
             if ii == 100:
-                raise TimeoutError("Za długo program pracuje")
+                raise BłądPrzekroczeniaCzasu("Za długo program pracuje")
 
 
 class Price(Client):

@@ -92,9 +92,6 @@ class Create_client():
             number += 10000 * (ord(self._name[1]) % 10)
         open = File_menagement(self._pool_name)
         other_clients = open.import_from_file("Clients.json", "Clients")
-        # with (open(file, 'r')) as json_file:
-        #     data = json.load(json_file)
-        # other_clients = data["Clients"]
         other_nums = other_clients.keys()
         danger_nums = [num for num in other_nums
                        if number <= int(num) <= (number+9999)]
