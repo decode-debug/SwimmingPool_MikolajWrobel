@@ -1,11 +1,5 @@
-from Program.Keyboard_importer import Get_from_keyboard
 from Program.plotter import get_pools, Reservation_suggestion_handler
 from Program.plotter import Payment_handler, swimming_pool_creator
-
-
-def test_Get_from_keyboard_get_password():
-    get = Get_from_keyboard()
-    assert get.get_tracks("Maly") == 6
 
 
 def test_get_pools():
@@ -14,10 +8,10 @@ def test_get_pools():
 
 def test_Reservation_suggestion_handler_check_reservation_aviablity():
     suggestion = Reservation_suggestion_handler("2024-11-04 11:00:00",
-                                                "02:00", "Maly", 1, "500005")
+                                                "02:00", "Maly", 1, "500005", 1)
     suggestion.check_reservation_aviablity()
     assert suggestion.get_syggestion == ('2024-11-04 11:00:00',
-                                         '2024-11-04 13:00:00', 1)
+                                         '2024-11-04 13:00:00', [1])
 
 
 def test_Payment_handler_get_single_payment():

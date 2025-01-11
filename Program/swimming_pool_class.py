@@ -242,12 +242,14 @@ class TimeTable(File_menagement):
 
     def check_if_reservations_not_same(self, id, strating_hour,
                                        eding_hour, track, people_swimming):
+        if type(track) is int:
+            track = [track]
         if len(self._Table[((self._Table["client's_id"] == id) &
                             (self._Table[
                                 "starting_hour"] == strating_hour) &
                             (self._Table[
                                 "ending_hour"] == eding_hour) &
-                            (np.isin(self._Table["track"], track)) &
+                            (self._Table["track"].apply(lambda x: any(t in x for t in track))) &
                             (self._Table["people_swimming"] == people_swimming)
                             )]) != 0:
             return True
@@ -279,13 +281,14 @@ class TimeTable(File_menagement):
             return 1
 
     def remove_booking(self, id, strating_hour, eding_hour, track, people):
+        if type(track) is int:
+            track = [track]
         """Removes clients reservation"""
-        self._Table = self._Table[~((self._Table["client's_id"] == id) &
-                                    (self._Table[
-                                        "starting_hour"] == strating_hour) &
-                                    (self._Table[
-                                        "ending_hour"] == eding_hour) &
-                                    (np.isin(self._Table["track"], track)) &
+        self._Table = self._Table[~(
+                                    (self._Table["client's_id"] == id) &
+                                    (self._Table["starting_hour"] == strating_hour) &
+                                    (self._Table["ending_hour"] == eding_hour) &
+                                    (self._Table["track"].apply(lambda x: any(t in x for t in track))) &  # Check if any element of `track` is in `x`
                                     (self._Table["people_swimming"] == people)
                                     )]
         self._Data = self._Table.to_dict(orient='list')
@@ -374,8 +377,9 @@ class Aviability_and_prices(File_menagement):
 
     def track_available(self, track, Hazards) -> int:  # type: ignore
         """checks if track is free at asked hour"""
-        Hazards_track = Hazards[Hazards['track'].apply(
-            lambda tracks: any(num in tracks for num in track))]
+        if type(track) == int:
+            track = [track]
+        Hazards_track = Hazards[Hazards['track'].apply(lambda tracks: any(num in tracks for num in track))]
         if len(Hazards_track) != 0:
             swimmers = Hazards_track["people_swimming"].sum()
         else:
@@ -407,7 +411,7 @@ class Aviability_and_prices(File_menagement):
                     return track
                 track += 1
         if self.track_available(self._track, Hazards) is True:
-            return self._track[0]
+            return self._track
 
     def risky_reservations(self, starting_hour, ending_hour):
         get = TimeTable("Maly")
@@ -455,7 +459,7 @@ class Aviability_and_prices(File_menagement):
             Hazards = self.risky_reservations(starting_hour, ending_hour)
             track = []
             for num in range(0, self.get_tracks):
-                if type(self.find_available_track(Hazards, track)) is int:
+                if type(self.find_available_track(Hazards, track)) is list:
                     track.append(self.find_available_track(Hazards, track))
                     swimmers_to_rent -= 5
                     if swimmers_to_rent <= 0:
